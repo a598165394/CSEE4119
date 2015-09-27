@@ -1,14 +1,14 @@
-JAVAC = javac
-JFLAGS = -encoding UTF-8
-
-
-
+JCC = javac
+JFLAGS = -g
 
 Server.class: Server.java
-		javac Server.java
+	$(JCC) $(JFLAGS) Server.java
 
-.PHONY: clean
+Client.class: Client.java
+	$(JCC) $(JFLAGS) Convert.java
+
 clean:
-	rm -f *.class Server -- *~
+	$(RM) *.class
+
 
 
