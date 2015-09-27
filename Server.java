@@ -21,7 +21,7 @@ import java.util.concurrent.Executors;
 public class Server extends Thread{
 	private ServerSocket serverSocket;
 	public int serverPort = 5357;
-	public static int BLOCK_TIME​ = 60000;
+	public static int BLOCK_TIME​ = 60;
 	public static int TIME_OUT = 8;
 	 private static ExecutorService exec; 
 	public static List<String> userList = new ArrayList<String>();
@@ -68,7 +68,7 @@ public class Server extends Thread{
 				 clientSocket = serverSocket.accept();
 			
 				 exec.execute(new ServerThread(clientSocket));
-				/*这里就应该开启子线程了，否则服务器会一直堵塞*/
+	
 			}	
 		}catch (Exception e){
 			e.printStackTrace();
@@ -94,7 +94,7 @@ public class Server extends Thread{
 				try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e1) {
-					// TODO Auto-generated catch block
+				
 					e1.printStackTrace();
 				}
 			List<Socket> tempSocketList = new ArrayList<Socket>();
@@ -197,7 +197,7 @@ public class Server extends Thread{
 		         				 pw.println(line);
 		            			 wrongCount+=1;
 		            			 if(wrongCount ==3){
-		            				 Thread.sleep(BLOCK_TIME​);
+		            				 Thread.sleep(BLOCK_TIME​*1000);
 		            			 }
 		            			 break;
 		            		 }
@@ -406,7 +406,7 @@ public class Server extends Thread{
 									pw = new PrintWriter(socket.getOutputStream(),true);							
 									pw.println(line);
 								}else{
-								/*	显示最近在线的用户*/
+							
 									Calendar calender = Calendar.getInstance();
 			          			 	long rightNowTime =  calender.getTimeInMillis();
 			          			 	time = time*60*1000;
@@ -424,16 +424,10 @@ public class Server extends Thread{
 								
 							}catch (Exception e){
 								e.printStackTrace();
-							/*	line ="Wrong Command";
-								pw = new PrintWriter(socket.getOutputStream(),true);
-								pw.println(line);*/
+							
 						
 							}
-		             }/*else{
-		            	 	line ="Wrong Command";
-							pw = new PrintWriter(socket.getOutputStream(),true);
-							pw.println(line);
-		             }*/
+		             }
 	             }
 	            	 
 	          
