@@ -9,7 +9,7 @@ import java.net.Socket;
 import java.util.concurrent.ExecutorService;  
 import java.util.concurrent.Executors;  
 public class Client {
-	  	private static final int PORT = 5357;
+	  	private static final int PORT = 5358;
 	    private static ExecutorService exec = Executors.newCachedThreadPool();  
 	    public static int loginNumber =0;
 	   

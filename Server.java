@@ -18,7 +18,7 @@ import java.util.concurrent.Executors;
 
 public class Server extends Thread{
 	private ServerSocket serverSocket;
-	public int serverPort = 5357;
+	public int serverPort = 5358;
 	public static int BLOCK_TIME = 60;
 
 	public static int TIME_OUT = 8;
@@ -207,13 +207,14 @@ public class Server extends Thread{
 	            		
 	            		 }
 	            	 }else if(loginSuccessCount ==1){
+				 int a =0;
 	            	 for(int i=0;i<passworddatabase.length;i++){
 	            		 if(line.trim().equals(passworddatabase[i])){
 	            			 
 	            			 for(int k=0;k<userList.size();k++){
 	          			 		if(usernamedatabase[i].equals(userList.get(k))){
 	          			 			line = "logout";
-	          			 			
+	          			 			a=1;
 	          			 			pw = new PrintWriter(socket.getOutputStream(),true);
 			         				pw.println(line);
 			         				
@@ -230,7 +231,11 @@ public class Server extends Thread{
 	 		            			 	break;
 	          			 		}
 	          			 	 }
-	            			loginSuccessCount+=1;
+					 
+						
+
+					      if(a==0){  
+	            		        	loginSuccessCount+=1;
 	      			 		clientList.add(socket);
 	          			 	userList.add(usernamedatabase[i]);
 	          			 	wholeUserList.add(usernamedatabase[i]);
@@ -246,7 +251,8 @@ public class Server extends Thread{
 	        				loginCount=1;
 	        				 exec.execute(new cleanUserThread());
 	        				
-	          			    break;
+	          			   	 break;
+					      }
 	            		 }else {
 	            			 loginCount+=1;
 	            			 if(loginCount==usernamedatabase.length){
