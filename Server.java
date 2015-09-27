@@ -242,7 +242,7 @@ public class Server extends Thread{
 		            			 wrongCount+=1;
 		            			 
 		            			 if(wrongCount ==3){
-		            				 Thread.sleep(BLOCK_TIME​);
+		            				 Thread.sleep(BLOCK_TIME​*1000);
 		            			 }
 		            			 break;
 	            			 	}
@@ -427,17 +427,20 @@ public class Server extends Thread{
 							
 						
 							}
-		             }
-	             }
+						}
+	             	}
 	            	 
 	          
 
 	             }
 				
 			
-			}catch (IOException | InterruptedException e){
+				}
+			catch (IOException  e){
 					e.printStackTrace();
-			}			 
+			}catch (InterruptedException e1){
+				e1.printStackTrace();
+			}
 		}
 	}
 	/**
