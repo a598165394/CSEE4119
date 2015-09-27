@@ -114,6 +114,7 @@ public class Server extends Thread{
 					pw = new PrintWriter(inactiveSocket.getOutputStream(),true);
 					line = "logout";
 					pw.println(line);	
+					
 				} catch (IOException e) {
 				
 					e.printStackTrace();
@@ -215,6 +216,17 @@ public class Server extends Thread{
 	          			 			
 	          			 			pw = new PrintWriter(socket.getOutputStream(),true);
 			         				pw.println(line);
+			         				
+			         				
+			         				for(int j=0;j<clientList.size();j++){
+			        					if(socket.equals(clientList.get(j))){
+			        						userList.remove(j);
+			        						userTime.remove(j);
+			        						timeList.remove(j);
+			        						clientList.remove(j);
+			        						break;
+			        					}
+			        				}
 	 		            			 	break;
 	          			 		}
 	          			 	 }
@@ -316,6 +328,15 @@ public class Server extends Thread{
 							pw = new PrintWriter(socket.getOutputStream(),true);
 							line = "logout";
 							pw.println(line);
+							for(int j=0;j<clientList.size();j++){
+	        					if(socket.equals(clientList.get(j))){
+	        						userList.remove(j);
+	        						userTime.remove(j);
+	        						timeList.remove(j);
+	        						clientList.remove(j);
+	        						break;
+	        					}
+	        				}
 							
 						}else if((allOrNot.trim()).equals("broadcast message")){
 							String allMessage ="";
