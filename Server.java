@@ -1,3 +1,4 @@
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.DataOutputStream;
@@ -21,7 +22,7 @@ public class Server extends Thread{
 	public static int BLOCK_TIME = 60;
 
 	public static int TIME_OUT = 8;
-	 private static ExecutorService exec; 
+	private static ExecutorService exec; 
 	public static List<String> userList = new ArrayList<String>();
 	public static List<Long> timeList = new ArrayList<Long>();
 	public static List<Socket> clientList = new ArrayList<Socket>();
@@ -210,7 +211,8 @@ public class Server extends Thread{
 	            			 
 	            			 for(int k=0;k<userList.size();k++){
 	          			 		if(usernamedatabase[i].equals(userList.get(k))){
-	          			 			line = "Prohibit concurrent duplict Users";
+	          			 			line = "logout";
+	          			 			
 	          			 			pw = new PrintWriter(socket.getOutputStream(),true);
 			         				pw.println(line);
 	 		            			 	break;
@@ -243,7 +245,8 @@ public class Server extends Thread{
 		            			 BLOCK_TIME = BLOCK_TIME*1000;
 		            			 if(wrongCount ==3){
 		            				 Thread.sleep(BLOCK_TIME);
-		            		         }
+
+		            			 }
 		            			 break;
 	            			 	}
 	            		 }
