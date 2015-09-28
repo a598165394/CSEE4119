@@ -16,7 +16,7 @@ public class Client {
 	  
 	    public Client(String IP, String portNumber) {  
 	        try {  
-	        	
+	        	 /*try to connect with the server*/
 	            Socket socket = new Socket(IP,Integer.valueOf(portNumber));  
 	            executorService.execute(new Sender(socket));  
 	            System.out.println("Username:");
@@ -27,10 +27,11 @@ public class Client {
 	            while ((message = bufferedReader.readLine()) != null) {  
 	                System.out.println(message); 
 	                if (message.trim().equals("logout")) { 
-
+	                	 /*if message is logout, the client will left*/       	
 	                    bufferedReader.close();  
 	                    executorService.shutdownNow();  
 	                    System.exit(0);
+	                    socket.close();
 	                    break;  
 	                }  
 	            }  
@@ -68,10 +69,11 @@ public class Client {
 	              
 	  
 	                    if (message.trim().equals("logout")) { 
-	                 
+	                   	 /*if message is logout, the client will left*/   
 	                        printWriter.close();  
 	                        bufferedReader.close();  
-	                        executorService.shutdownNow();  
+	                        executorService.shutdownNow();
+	                        System.exit(0);	
 	                        break;  
 	                    }  
 	                }  
@@ -84,7 +86,7 @@ public class Client {
 	    public static void main(String[] args)  {  
 	    	try{
 	    		new Client(args[0],args[1]);  
-	    
+	    	
 	    	}catch (Exception e){
 	    		
 	    	}

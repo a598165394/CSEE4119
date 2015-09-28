@@ -10,6 +10,7 @@ import java.io.PrintWriter;
 import java.io.Reader;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -31,6 +32,7 @@ public class Server extends Thread{
 	public static List<Long> userTime = new ArrayList<Long>();
 	public static List<Long> wholeTimeList = new ArrayList<Long>();
 	public static List<String> wholeUserList = new ArrayList<String>();
+	public static List<String> blockUserList = new ArrayList<String>();
 	public  String line;
 	
 	public PrintWriter printWriter;
@@ -151,7 +153,7 @@ public class Server extends Thread{
 		private BufferedReader bufferedReader;
 		private PrintWriter printWriter;
 		private String line;
-		private String specUser;
+		private String specUser="";
 		private int timeBlockControl = 0;
 		private   int wrongCount =0;
 		public ServerThread(Socket socket) {
@@ -180,8 +182,14 @@ public class Server extends Thread{
 				 int loginSuccessCount =0;
 	            
 	             int loginCount =1;
-	           
-	             while ((line = bufferedReader.readLine()) != null) {  
+	        try{   
+	        	while(true){
+	        		try{
+	        		line = bufferedReader.readLine();
+	        		}catch (SocketException e){
+	        			e.printStackTrace();
+	        		}
+	             if ( line != null) {  
 	            	 if(timeBlockControl<3){
 	            		 /*Vertify for username*/
 		            	 if(loginSuccessCount ==0){
@@ -294,13 +302,15 @@ public class Server extends Thread{
 			            			 loginSuccessCount =1;
 			            			 /*if failed for 3 consectuive time for password, this user will be block,the way to perform the block is using timer*/
 			            			 if(wrongCount >=3){
-			            				 line = "3 consecutive failures for Password. This user will be locked "+BLOCK_TIME +" Second";
+			            				 line = "logout";
+			            				 
 	            						 new Timer().schedule(new TimerTask(){
 
 	            							 @Override
 	            							 public void run() {
 	            								line = "Password:";
 												try {
+													
 													printWriter = new PrintWriter(socket.getOutputStream(),true);
 													printWriter.println(line);
 		            								 wrongCount =0;
@@ -318,11 +328,14 @@ public class Server extends Thread{
 	            					}
 			            			
 			            			printWriter = new PrintWriter(socket.getOutputStream(),true);
-			         				printWriter.println(line);
-							line = "logout";
-							printWriter = new PrintWriter(socket.getOutputStream(),true);
-							printWriter.println(line);
-			            			break;
+			            			printWriter.println(line);
+						        	
+							
+							
+							
+							
+								
+							break;
 		            			 	}
 		            		 }
 		            	 }
@@ -369,6 +382,7 @@ public class Server extends Thread{
 									printWriter.println(line);
 			    				}
 		    				}
+		    				
 		    				
 		    				 /*if command is whoelse ,return all the user is online*/
 		    				
@@ -519,6 +533,11 @@ public class Server extends Thread{
 								
 							
 								}
+							}else{
+								line = "Wrong command";
+							 	printWriter = new PrintWriter(socket.getOutputStream(),true);							
+								printWriter.println(line);
+								
 							}
 		             	}
 		            	 
@@ -527,14 +546,21 @@ public class Server extends Thread{
 	             		line = "You are still in Block";
 	             		printWriter = new PrintWriter(socket.getOutputStream(),true);
 	             		printWriter.println(line);
+	             		}
 	             	}
-	             }
+	        }
+		     }catch (NullPointerException e){
+				e.printStackTrace();
+	         	}
 				
 			
 				}
-			catch (IOException  e){
-					e.printStackTrace();
+			catch (Exception  e){
+				e.printStackTrace();
 			}
+			
+				
+			
 		}
 	}
 	/**
@@ -542,6 +568,7 @@ public class Server extends Thread{
 	 */
 	public static void main(String[] args) {
 		new Server(args[0]);
+
 	
 	}
 
