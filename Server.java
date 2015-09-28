@@ -33,8 +33,8 @@ public class Server extends Thread{
 	public static List<String> wholeUserList = new ArrayList<String>();
 	public  String line;
 	
-	public PrintWriter pw;
-	public BufferedReader br;
+	public PrintWriter printWriter;
+	public BufferedReader bufferedReader;
 
 	public static String[] usernamedatabase ={"columbia",
 			"seas",
@@ -58,12 +58,12 @@ public class Server extends Thread{
 	public Server(String args){
 		launchServer(args);
 	}
-	
+	/*Use TCP to create socket connection, once it i accpet, produce a thread for a specific user, every client has its own thread to deal with*/	
 	private void launchServer(String args) {
 		try{
 			serverSocket = new ServerSocket(Integer.valueOf(args));
 			executorService = Executors.newCachedThreadPool();
-			
+
 			Socket clientSocket =null;
 			while(true){
 				 clientSocket = serverSocket.accept();
@@ -77,9 +77,9 @@ public class Server extends Thread{
 		
 	}
 
-	
+	/*A Thread which is used for clean out the client who is logout either by itself or by Server or by Control C*/	
 	static class cleanUserThread implements Runnable{
-		private PrintWriter pw;
+		private PrintWriter printWriter;
 		private String line;
 		public cleanUserThread(){
 		
@@ -113,9 +113,9 @@ public class Server extends Thread{
 			for (Socket inactiveSocket :tempSocketList ){
 				try {
 					
-					pw = new PrintWriter(inactiveSocket.getOutputStream(),true);
+					printWriter = new PrintWriter(inactiveSocket.getOutputStream(),true);
 					line = "logout";
-					pw.println(line);	
+					printWriter.println(line);	
 					
 				} catch (IOException e) {
 				
@@ -144,12 +144,12 @@ public class Server extends Thread{
 	}
 	
 	
-	
+	/*A Thread which is used for deal with every Client*/
 	static class ServerThread implements Runnable {
 		
 		private Socket socket;
-		private BufferedReader br;
-		private PrintWriter pw;
+		private BufferedReader bufferedReader;
+		private PrintWriter printWriter;
 		private String line;
 		private String specUser;
 		private int timeBlockControl = 0;
@@ -158,7 +158,7 @@ public class Server extends Thread{
 			
 			this.socket = socket;
 			  try {
-				br = new BufferedReader(new InputStreamReader(socket  
+				bufferedReader = new BufferedReader(new InputStreamReader(socket  
 				          .getInputStream()));
 			
 			} catch (IOException e) {
@@ -174,23 +174,23 @@ public class Server extends Thread{
 			  
 			try{
 				
-				 br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+				 bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 				  
 	   
 				 int loginSuccessCount =0;
 	            
 	             int loginCount =1;
 	           
-	             while ((line = br.readLine()) != null) {  
+	             while ((line = bufferedReader.readLine()) != null) {  
 	            	 if(timeBlockControl<3){
-		            	 
+	            		 /*Vertify for username*/
 		            	 if(loginSuccessCount ==0){
 		            		 for(int i=0;i<usernamedatabase.length;i++){
 		            			 if(line.trim().equals(usernamedatabase[i])){
 		            				 loginSuccessCount+=1;
 		            				 line ="Password:"; 	
-		            				 pw = new PrintWriter(socket.getOutputStream(),true);
-		            				 pw.println(line);
+		            				 printWriter = new PrintWriter(socket.getOutputStream(),true);
+		            				 printWriter.println(line);
 		            				 loginCount =1;
 		      
 		            			 	 break; 	
@@ -202,17 +202,17 @@ public class Server extends Thread{
 		            					 loginSuccessCount=0;
 		            					 wrongCount+=1;
 		            					 timeBlockControl +=1;
-			            	
+		            					 /*if failed for 3 consectuive time for username, this user will be block*/
 		            					 if(wrongCount >=3){
-		            						 line ="Duplicate user login";
+		            						 line ="3 consecutive failures for username. This user will be locked "+BLOCK_TIME +" Second";
 		            						 new Timer().schedule(new TimerTask(){
 
 		            							 @Override
 		            							 public void run() {
 		            								 try {
-		            									 line = "Password:";
-														pw = new PrintWriter(socket.getOutputStream(),true);
-														 pw.println(line);
+		            									 line = "UserName:";
+		            									 printWriter = new PrintWriter(socket.getOutputStream(),true);
+														 printWriter.println(line);
 			            								 timeBlockControl =0;
 			            								 wrongCount =0;
 													} catch (IOException e) {
@@ -227,8 +227,8 @@ public class Server extends Thread{
 		            								 );
 			            				 
 		            					}
-		            					 pw = new PrintWriter(socket.getOutputStream(),true);
-		            					 pw.println(line);
+		            					 printWriter = new PrintWriter(socket.getOutputStream(),true);
+		            					 printWriter.println(line);
 		            					 break;
 			            			
 		            				 }
@@ -236,6 +236,7 @@ public class Server extends Thread{
 		            		
 		            		 }
 		            	 }else if(loginSuccessCount ==1){
+		            		 /*Vertify for password*/
 		            		 int a =0;
 		            		 for(int i=0;i<passworddatabase.length;i++){
 		            			 if(line.trim().equals(passworddatabase[i])){
@@ -244,8 +245,8 @@ public class Server extends Thread{
 		            					 if(usernamedatabase[i].equals(userList.get(k))){
 		            						 line = "logout";
 		            						 a=1;
-		            						 pw = new PrintWriter(socket.getOutputStream(),true);
-		            						 pw.println(line);
+		            						 printWriter = new PrintWriter(socket.getOutputStream(),true);
+		            						 printWriter.println(line);
 				         				
 				         				
 		            						 for(int j=0;j<clientList.size();j++){
@@ -264,6 +265,7 @@ public class Server extends Thread{
 							
 	
 		            				 if(a==0){  
+		            					 /*login success, return weclome message	*/
 		            		        	loginSuccessCount+=1;
 		            		        	clientList.add(socket);
 		            		        	userList.add(usernamedatabase[i]);
@@ -275,8 +277,8 @@ public class Server extends Thread{
 		            		        	wholeTimeList.add(loginTime);
 		            		        	userTime.add(loginTime);
 		            		        	line = "Welcome to Simple Chat Server!"+ "\n"+"Command:";
-		            		        	pw = new PrintWriter(socket.getOutputStream(),true);
-		            		        	pw.println(line);
+		            		        	printWriter = new PrintWriter(socket.getOutputStream(),true);
+		            		        	printWriter.println(line);
 		            		        	loginCount=1;
 		            		        	executorService.execute(new cleanUserThread());
 		        				
@@ -290,20 +292,21 @@ public class Server extends Thread{
 			            			 line = "Username or Password Wrong! Try again!"+"\n"+"Password: ";
 			            			 loginCount = 1;
 			            			 loginSuccessCount =1;
+			            			 /*if failed for 3 consectuive time for password, this user will be block,the way to perform the block is using timer*/
 			            			 if(wrongCount >=3){
-			            				 line = "Duplicate User login";
+			            				 line = "3 consecutive failures for Password. This user will be locked "+BLOCK_TIME +" Second";
 	            						 new Timer().schedule(new TimerTask(){
 
 	            							 @Override
 	            							 public void run() {
 	            								line = "Password:";
 												try {
-													pw = new PrintWriter(socket.getOutputStream(),true);
-													pw.println(line);
+													printWriter = new PrintWriter(socket.getOutputStream(),true);
+													printWriter.println(line);
 		            								 wrongCount =0;
 		            								 timeBlockControl =0;
 												} catch (IOException e) {
-													// TODO Auto-generated catch block
+											
 													e.printStackTrace();
 												}
 												
@@ -314,8 +317,8 @@ public class Server extends Thread{
 		            				 
 	            					}
 			            			
-			            			pw = new PrintWriter(socket.getOutputStream(),true);
-			         				pw.println(line);
+			            			printWriter = new PrintWriter(socket.getOutputStream(),true);
+			         				printWriter.println(line);
 			            			break;
 		            			 	}
 		            		 }
@@ -359,12 +362,12 @@ public class Server extends Thread{
 			    					specUser +=resultList[1];
 			    				}catch (Exception e){
 			    					line ="Wrong Command!!!Re-try!!";
-									pw = new PrintWriter(socket.getOutputStream(),true);							
-									pw.println(line);
+									printWriter = new PrintWriter(socket.getOutputStream(),true);							
+									printWriter.println(line);
 			    				}
 		    				}
 		    				
-		    				
+		    				 /*if command is whoelse ,return all the user is online*/
 		    				
 							if((line.trim()).equals("whoelse")){
 								
@@ -375,14 +378,15 @@ public class Server extends Thread{
 									message+="\n";
 								}
 							
-								pw = new PrintWriter(socket.getOutputStream(),true);
+								printWriter = new PrintWriter(socket.getOutputStream(),true);
 						
-								pw.println(message);
+								printWriter.println(message);
 		     		
 		     			 	
 							}
+							 /*if command is logout ,the client will logout*/
 							else if(line.trim().equals("logout")){
-								pw = new PrintWriter(socket.getOutputStream(),true);
+								printWriter = new PrintWriter(socket.getOutputStream(),true);
 								line = "logout";
 								
 								for(int j=0;j<clientList.size();j++){
@@ -394,8 +398,8 @@ public class Server extends Thread{
 		        						break;
 		        					}
 		        				}
-								pw.println(line);
-								
+								printWriter.println(line);
+								 /*if command is broadcast ,the server will transfer the message to all client who is online*/
 							}else if((allOrNot.trim()).equals("broadcast message")){
 								String allMessage ="";
 								for(int z=0;z<clientList.size();z++){
@@ -410,9 +414,10 @@ public class Server extends Thread{
 								
 								}
 								for (Socket liveSocket :clientList ){
-									pw = new PrintWriter(liveSocket.getOutputStream(),true);
-									pw.println(allMessage);	
+									printWriter = new PrintWriter(liveSocket.getOutputStream(),true);
+									printWriter.println(allMessage);	
 								}
+								 /*if command is broadcast user,the server will transfer the message to the specific list client who is online*/
 							}else if((specUser.trim()).equals("broadcast user")){
 			
 								String specMessage = "";
@@ -423,6 +428,7 @@ public class Server extends Thread{
 										break;
 									}
 								}
+							
 								for(int i=0;i<resultList.length;i++){
 									if(resultList[i].equals("message")){
 										for(int z=i+1;z<resultList.length;z++){
@@ -432,8 +438,8 @@ public class Server extends Thread{
 										for(int j=2;j<=i-1;j++){
 											for(int h=0;h<userList.size();h++){
 												if(resultList[j].equals(userList.get(h))){
-													pw = new PrintWriter((clientList.get(h)).getOutputStream(),true);							
-													pw.println(specMessage);
+													printWriter = new PrintWriter((clientList.get(h)).getOutputStream(),true);							
+													printWriter.println(specMessage);
 													break;
 												}
 											}
@@ -442,6 +448,7 @@ public class Server extends Thread{
 										
 									}
 								}
+								 /*if command is message,the server will transfer the message to the private client if it is online*/
 							}else if(resultList[0].equals("message")){
 								String outputResult ="";
 								int findNumber = 1;
@@ -460,19 +467,19 @@ public class Server extends Thread{
 											outputResult+=" ";
 										}
 										line = outputResult;
-										pw = new PrintWriter((clientList.get(i)).getOutputStream(),true);								
-										pw.println(line);
+										printWriter = new PrintWriter((clientList.get(i)).getOutputStream(),true);								
+										printWriter.println(line);
 										
 										break;
 									}else if(findNumber == userList.size()){
 										line ="Wrong Command!!!Re-try!!";
-										pw = new PrintWriter(socket.getOutputStream(),true);							
-										pw.println(line);
+										printWriter = new PrintWriter(socket.getOutputStream(),true);							
+										printWriter.println(line);
 										
 									}
 									findNumber +=1;
 								}
-			            	 
+								 /*if command is wholast,the server will send who is online during the specific time*/
 							}else if((typedOutput.trim()).equals("wholast")){
 								String timeString="";
 								int time;
@@ -485,8 +492,8 @@ public class Server extends Thread{
 									if(time<=0|time >=60){
 										line ="Wrong Command!!!Re-try!!";
 									
-										pw = new PrintWriter(socket.getOutputStream(),true);							
-										pw.println(line);
+										printWriter = new PrintWriter(socket.getOutputStream(),true);							
+										printWriter.println(line);
 									}else{
 								
 										Calendar calender = Calendar.getInstance();
@@ -500,8 +507,8 @@ public class Server extends Thread{
 				          			 		}
 				          			 	}
 				          			 	
-				          			 	pw = new PrintWriter(socket.getOutputStream(),true);							
-										pw.println(recentUser);
+				          			 	printWriter = new PrintWriter(socket.getOutputStream(),true);							
+										printWriter.println(recentUser);
 									}
 									
 								}catch (Exception e){
@@ -515,8 +522,8 @@ public class Server extends Thread{
 	          
 	             	}else if(timeBlockControl>=3){
 	             		line = "You are still in Block";
-	             		pw = new PrintWriter(socket.getOutputStream(),true);
-	             		pw.println(line);
+	             		printWriter = new PrintWriter(socket.getOutputStream(),true);
+	             		printWriter.println(line);
 	             	}
 	             }
 				
@@ -531,8 +538,8 @@ public class Server extends Thread{
 	 * @param args
 	 */
 	public static void main(String[] args) {
-/*		new Server(args[0]);*/
-		new Server("5358");
+		new Server(args[0]);
+	
 	}
 
 }
