@@ -14,10 +14,10 @@ public class Client {
 	    public static int loginNumber =0;
 	   
 	  
-	    public Client() {  
+	    public Client(String IP, String portNumber) {  
 	        try {  
 	        	
-	            Socket socket = new Socket(InetAddress.getLocalHost(), PORT);  
+	            Socket socket = new Socket(IP,Integer.valueOf(portNumber));  
 	            exec.execute(new Sender(socket));  
 	            System.out.println("Username:");
 	            
@@ -83,7 +83,7 @@ public class Client {
 
 	    public static void main(String[] args)  {  
 	    	try{
-	    		new Client();  
+	    		new Client(args[0],args[1]);  
 	    	}catch (Exception e){
 	    		
 	    	}

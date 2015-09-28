@@ -18,7 +18,7 @@ import java.util.concurrent.Executors;
 
 public class Server extends Thread{
 	private ServerSocket serverSocket;
-	public int serverPort = 5358;
+/*	public int serverPort = 5358;*/
 	public static int BLOCK_TIME = 60;
 
 	public static int TIME_OUT = 8;
@@ -53,13 +53,13 @@ public class Server extends Thread{
 			"donation",
 			"seemsez"};
 
-	public Server(){
-		launchServer();
+	public Server(String args){
+		launchServer(args);
 	}
 	
-	private void launchServer() {
+	private void launchServer(String args) {
 		try{
-			serverSocket = new ServerSocket(serverPort);
+			serverSocket = new ServerSocket(Integer.valueOf(args));
 			exec = Executors.newCachedThreadPool();
 			
 			Socket clientSocket =null;
@@ -333,7 +333,7 @@ public class Server extends Thread{
 						else if(line.trim().equals("logout")){
 							pw = new PrintWriter(socket.getOutputStream(),true);
 							line = "logout";
-							pw.println(line);
+							
 							for(int j=0;j<clientList.size();j++){
 	        					if(socket.equals(clientList.get(j))){
 	        						userList.remove(j);
@@ -343,6 +343,7 @@ public class Server extends Thread{
 	        						break;
 	        					}
 	        				}
+							pw.println(line);
 							
 						}else if((allOrNot.trim()).equals("broadcast message")){
 							String allMessage ="";
@@ -477,11 +478,15 @@ public class Server extends Thread{
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		new Server();
+		new Server(args[0]);
 		
 	}
 
 }
+
+   
+
+
 
    
 
