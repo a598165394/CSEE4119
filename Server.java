@@ -33,6 +33,7 @@ public class Server extends Thread{
 	public static List<Long> wholeTimeList = new ArrayList<Long>();
 	public static List<String> wholeUserList = new ArrayList<String>();
 	public static List<String> blockUserList = new ArrayList<String>();
+	public static int blockNumber =0;
 	public  String line;
 	
 	public PrintWriter printWriter;
@@ -148,7 +149,7 @@ public class Server extends Thread{
 	
 	/*A Thread which is used for deal with every Client*/
 	static class ServerThread implements Runnable {
-		
+		private String tempUsername="";
 		private Socket socket;
 		private BufferedReader bufferedReader;
 		private PrintWriter printWriter;
@@ -193,9 +194,18 @@ public class Server extends Thread{
 	            	 if(timeBlockControl<3){
 	            		 /*Vertify for username*/
 		            	 if(loginSuccessCount ==0){
+		            		 for(int i=0;i<blockUserList.size();i++){
+		            			 if(line.trim().equals(blockUserList.get(i))){
+		            				 line = "You are still in Block";
+		     	             		printWriter = new PrintWriter(socket.getOutputStream(),true);
+		     	             		printWriter.println(line);
+		     	             		break;
+		            			 }
+		            		 }
 		            		 for(int i=0;i<usernamedatabase.length;i++){
 		            			 if(line.trim().equals(usernamedatabase[i])){
 		            				 loginSuccessCount+=1;
+		            				 tempUsername = line.trim();
 		            				 line ="Password:"; 	
 		            				 printWriter = new PrintWriter(socket.getOutputStream(),true);
 		            				 printWriter.println(line);
@@ -280,7 +290,7 @@ public class Server extends Thread{
 		            		        	wholeUserList.add(usernamedatabase[i]);
 		            		        	Calendar calender = Calendar.getInstance();
 		            		        	long loginTime =  calender.getTimeInMillis();
-		          			 	
+		            		        	
 		            		        	timeList.add(loginTime);
 		            		        	wholeTimeList.add(loginTime);
 		            		        	userTime.add(loginTime);
@@ -302,7 +312,10 @@ public class Server extends Thread{
 			            			 loginSuccessCount =1;
 			            			 /*if failed for 3 consectuive time for password, this user will be block,the way to perform the block is using timer*/
 			            			 if(wrongCount >=3){
+			            				 blockNumber+=1;
 			            				 line = "logout";
+			            				 blockUserList.add(tempUsername);
+			            				 tempUsername = "";
 			            				 
 	            						 new Timer().schedule(new TimerTask(){
 
@@ -310,12 +323,15 @@ public class Server extends Thread{
 	            							 public void run() {
 	            								line = "Password:";
 												try {
-													
+													blockUserList.remove(blockNumber-1);
+		            								 blockNumber -=1;
 													printWriter = new PrintWriter(socket.getOutputStream(),true);
 													printWriter.println(line);
 		            								 wrongCount =0;
 		            								 timeBlockControl =0;
+		            								 
 												} catch (IOException e) {
+													
 											
 													e.printStackTrace();
 												}
@@ -351,6 +367,7 @@ public class Server extends Thread{
 		            			 userTime.set(l, time);
 		            		 }
 		            	 }
+		            	 tempUsername ="";
 		            	loginSuccessCount =3;
 		            	String[] resultList = (line.trim()).split(" ");	
 		            	String allOrNot ="";
@@ -568,7 +585,7 @@ public class Server extends Thread{
 	 */
 	public static void main(String[] args) {
 		new Server(args[0]);
-
+		
 	
 	}
 

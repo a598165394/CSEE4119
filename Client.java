@@ -85,8 +85,8 @@ public class Client {
 
 	    public static void main(String[] args)  {  
 	    	try{
-	    		new Client(args[0],args[1]);  
-	    	
+	    		new Client(args[0],args[1]); 
+	    		 
 	    	}catch (Exception e){
 	    		
 	    	}
