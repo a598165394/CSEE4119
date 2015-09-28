@@ -319,6 +319,9 @@ public class Server extends Thread{
 			            			
 			            			printWriter = new PrintWriter(socket.getOutputStream(),true);
 			         				printWriter.println(line);
+							line = "logout";
+							printWriter = new PrintWriter(socket.getOutputStream(),true);
+							printWriter.println(line);
 			            			break;
 		            			 	}
 		            		 }
