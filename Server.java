@@ -17,13 +17,15 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.Pattern;
+import java.util.regex.Pattern;
 
 public class Server extends Thread{
 	private ServerSocket serverSocket;
 	
 	public static int BLOCK_TIME = 60;
 
-	public static int TIME_OUT = 8;
+	public static int TIME_OUT = 30;
 	private static ExecutorService executorService; 
 	public static List<String> userList = new ArrayList<String>();
 	public static List<Long> timeList = new ArrayList<Long>();
@@ -225,7 +227,8 @@ public class Server extends Thread{
 			      
 			            			 	 break; 	
 			            			 } else if( i==usernamedatabase.length-1){
-			            				 line ="UPassword:"; 
+			            				 line ="Try another Username";
+										 loginSuccessCount =0; 
 			            				 printWriter = new PrintWriter(socket.getOutputStream(),true);
 			            				 printWriter.println(line);
 			            			 }
@@ -238,7 +241,7 @@ public class Server extends Thread{
 			            		a =0;
 			            		 for(int i=0;i<passworddatabase.length;i++){
 			            			 if(line.trim().equals(passworddatabase[i])){
-			            			 
+			            				 a=0;
 			            				 for(int k=0;k<userList.size();k++){
 			            					 if(usernamedatabase[i].equals(userList.get(k))){
 			            						 timeBlockControl =2;
@@ -293,56 +296,58 @@ public class Server extends Thread{
 									        	
 			            				 }
 			            					
-			            				 
-			            				 wrongCount+=1;
-				            			 timeBlockControl =0;
-				            			 line = "Username or Password Wrong! Try again!"+"\n"+"Password: ";
-				            			
-				            			 loginCount = 1;
-				            			 loginSuccessCount =1;
-				            			 /*if failed for 3 consectuive time for password, this user will be block,the way to perform the block is using timer*/
-				            			 if(wrongCount >=3){
-				            				 timeBlockControl=1;
-				            				 blockNumber+=1;
-				            				 line = "logout";
-				            				 blockUserList.add(tempUsername);
-				            				 tempUsername = "";
-				            				 
-		            						 new Timer().schedule(new TimerTask(){
-	
-		            							 @Override
-		            							 public void run() {
-		            								line = "Password:";
-													try {
-														blockUserList.remove(blockNumber-1);
-			            								 blockNumber -=1;
-														printWriter = new PrintWriter(socket.getOutputStream(),true);
-														printWriter.println(line);
-			            								 wrongCount =0;
-			            								 timeBlockControl =0;
-			            								 
-													} catch (IOException e) {
-														
-												
-														e.printStackTrace();
-													}
+			            				 if(i==passworddatabase.length-1){
+			            					 wrongCount+=1;
+					            			 timeBlockControl =0;
+					            			 line = "Username or Password Wrong! Try again!"+"\n"+"Password: ";
+					            			
+					            			 loginCount = 1;
+					            			 loginSuccessCount =1;
+					            			 /*if failed for 3 consectuive time for password, this user will be block,the way to perform the block is using timer*/
+					            			 if(wrongCount >=3){
+					            				 timeBlockControl=1;
+					            				 blockNumber+=1;
+					            				 line = "logout";
+					            				 blockUserList.add(tempUsername);
+					            				 tempUsername = "";
+					            				 
+			            						 new Timer().schedule(new TimerTask(){
+		
+			            							 @Override
+			            							 public void run() {
+			            								line = "Password:";
+														try {
+															blockUserList.remove(blockNumber-1);
+				            								 blockNumber -=1;
+															printWriter = new PrintWriter(socket.getOutputStream(),true);
+															printWriter.println(line);
+				            								 wrongCount =0;
+				            								 timeBlockControl =0;
+				            								 
+														} catch (IOException e) {
+															
 													
-		            							 }
-			            					 
-		            						 },BLOCK_TIME*1000
-		            								 );
-			            				 
-		            					}
-				            			
-				            		
-				            				printWriter = new PrintWriter(socket.getOutputStream(),true);
-					            			printWriter.println(line);
-								
-								
-								
-								
+															e.printStackTrace();
+														}
+														
+			            							 }
+				            					 
+			            						 },BLOCK_TIME*1000
+			            								 );
+				            				 
+			            					}
+					            			
+					            		
+					            				printWriter = new PrintWriter(socket.getOutputStream(),true);
+						            			printWriter.println(line);
 									
-					            			break;
+									
+									
+									
+										
+						            			break;
+			            				 }
+			            				
 			            			 	}
 			            		 }
 			            	 }
@@ -444,7 +449,7 @@ public class Server extends Thread{
 									}
 									 /*if command is broadcast user,the server will transfer the message to the specific list client who is online*/
 								}else if((specUser.trim()).equals("broadcast user")){
-				
+									boolean tempSuccess =false;
 									String specMessage = "";
 									for(int u=0;u<clientList.size();u++){
 										if(socket.equals(clientList.get(u))){
@@ -458,10 +463,14 @@ public class Server extends Thread{
 									}
 								
 									for(int i=0;i<resultList.length;i++){
+										
 										if(resultList[i].equals("message")){
+											tempSuccess =true;
+											
 											for(int z=i+1;z<resultList.length;z++){
 												specMessage+= resultList[z];
 												specMessage+= " ";
+												
 											}
 											for(int j=2;j<=i-1;j++){
 												for(int h=0;h<userList.size();h++){
@@ -474,10 +483,11 @@ public class Server extends Thread{
 												
 											}
 											
-										}
-										if(i==resultList.length-1 &&specMessage.equals(" ") ){
+										}else if(i==resultList.length-1 &&(resultList[i].equals("message")== false && tempSuccess==false )){
 											line ="Wrong Command!!!Re-try!!";
+											tempSuccess=false;
 										}
+									
 									}
 									printWriter = new PrintWriter(socket.getOutputStream(),true);							
 									printWriter.println(line);
@@ -515,34 +525,49 @@ public class Server extends Thread{
 									 /*if command is wholast,the server will send who is online during the specific time*/
 								}else if((typedOutput.trim()).equals("wholast")){
 									String timeString="";
-									int time;
+									int time=0;
 									for(int j=8;j<length;j++){
 										timeString +=commandArray[j];
 									}
 									try{
-										time = Integer.parseInt(timeString);
-								
-										if(time<=0|time >=60){
-											line ="Wrong Command!!!Re-try!!";
-										
-											printWriter = new PrintWriter(socket.getOutputStream(),true);							
-											printWriter.println(line);
-										}else{
+										Pattern pattern = Pattern.compile("[0-9]*");
 									
-											Calendar calender = Calendar.getInstance();
-					          			 	long rightNowTime =  calender.getTimeInMillis();
-					          			 	time = time*60*1000;
-					          			 	int sizeList = wholeUserList.size();
-					          			 	String recentUser ="";
-					          			 	for(int i=sizeList-1;i>=0;i--){
-					          			 		if((rightNowTime-wholeTimeList.get(i))<=time){
-					          			 			recentUser += wholeUserList.get(i)+"\n";
-					          			 		}
-					          			 	}
-					          			 	
-					          			 	printWriter = new PrintWriter(socket.getOutputStream(),true);							
-											printWriter.println(recentUser);
-										}
+											if(pattern.matcher(timeString).matches()){
+												time = Integer.parseInt(timeString);
+												 if(time>0 && time<60){
+														
+														Calendar calender = Calendar.getInstance();
+								          			 	long rightNowTime =  calender.getTimeInMillis();
+								          			 	time = time*60*1000;
+								          			 	int sizeList = wholeUserList.size();
+								          			 	String recentUser ="";
+								          			 	for(int i=sizeList-1;i>=0;i--){
+								          			 		if((rightNowTime-wholeTimeList.get(i))<=time){
+								          			 			recentUser += wholeUserList.get(i)+"\n";
+								          			 		}
+								          			 	}
+								          			 	
+								          			 	printWriter = new PrintWriter(socket.getOutputStream(),true);							
+														printWriter.println(recentUser);
+													}else{
+														line = "Wrong command";
+													 	printWriter = new PrintWriter(socket.getOutputStream(),true);							
+														printWriter.println(line);
+													}
+									/*			loginSuccessCount =2;*/
+											}else{
+												
+												line = "Wrong command";
+												loginSuccessCount =2;
+											 	printWriter = new PrintWriter(socket.getOutputStream(),true);							
+												printWriter.println(line);
+												
+											}
+											
+										
+										
+								
+										
 										
 									}catch (Exception e){
 										e.printStackTrace();
