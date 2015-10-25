@@ -1,5 +1,3 @@
-
-
 import java.io.BufferedReader;  
 
 import java.io.InputStreamReader;  
@@ -14,11 +12,11 @@ public class Client {
 	    public static int loginNumber =0;
 	   
 	  
-	    public Client(String IP, String portNumber) {  
+	    public Client(String serverIP, String serverPortNumber) {  
 	        try {  
 	        	 /*try to connect with the server*/
-	            Socket socket = new Socket(IP,Integer.valueOf(portNumber));  
-	            executorService.execute(new Sender(socket));  
+	            Socket socket = new Socket(serverIP,Integer.valueOf(serverPortNumber));  
+	            executorService.execute(new clientSenderThread(socket));  
 	            System.out.println("Username:");
 	            String message;  
 	            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket  
@@ -45,19 +43,17 @@ public class Client {
 	    
 	   
 	  
-	    /** 
-	     * Client get message from console;
-	     * 
-	     */  
-	    static class Sender implements Runnable {  
+	    /*The Thread for client for sender and receiver message*/   
+	    static class clientSenderThread implements Runnable {  
 	        private Socket socket;  
 	  
-	        public Sender(Socket socket) {  
+	        public clientSenderThread(Socket socket) {  
 	            this.socket = socket;  
 	        }  
 	  
 	        public void run() {  
 	            try {  
+	            	/*Reading from the command line*/   
 	                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(  
 	                        System.in));  
 	                PrintWriter printWriter = new PrintWriter(socket.getOutputStream(), true);  
