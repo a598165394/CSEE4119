@@ -84,8 +84,8 @@ public class Receiver {
 						int sendlength = Byte2Int2(checksum);
 						byte[] receiveChecksum = calcCheckSum(data);
 						int receivelength = Byte2Int2(receiveChecksum);
-	//					System.out.println("receivelength: "+ receivelength );
-		//				System.out.println("sendlength: "+ sendlength);
+						System.out.println("receivelength: "+ receivelength );
+						System.out.println("sendlength: "+ sendlength);
 						
 						int sequenceNumber = Byte2Int(seq);
 		//				seqQueue.add(sequenceNumber);
@@ -99,10 +99,10 @@ public class Receiver {
 								  break;
 							}
 		                    System.out.println("Receive successful. Seq: " + sequenceNumber);
-		                    fileOutput.flush();
-							fileOutput.flush();
+		                  fileOutput.flush();
 							
 		                    fileOutput.write(data);
+		                    fileOutput.flush();
 				//			fileOutput.write(data,0,data.length);
 						}else{
 						    System.out.println("Receive failed. Seq: " + sequenceNumber);
@@ -114,6 +114,8 @@ public class Receiver {
 						datalength = dp.getLength();
 					}
 					ds.close();
+					  fileOutput.flush();
+						fileOutput.flush();
 					fileOutput.close();
 					socket.close();
 					System.exit(0);

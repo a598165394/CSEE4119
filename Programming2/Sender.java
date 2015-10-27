@@ -29,7 +29,7 @@ public class Sender {
     private DatagramSocket ds;
 	public Sender(String filePath, String remoteIP, String remotePort, String ackPort, String logFile, String windows_Size)  {
 		try {
-			
+
 			ds = new DatagramSocket(Integer.parseInt(ackPort));
 			dp = null;
 			DataOutputStream logStream = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(logFile)));
@@ -73,9 +73,10 @@ public class Sender {
 				// Dev RTT = 0.75 Dev RTT + 0.25 |Sample RTT - Estimated RTT|
 				Timer timeout = new Timer();
 				timeout.schedule(new reTransimission(sequenceNumber,remoteIP), 300);
-				
+
 			//每次发送文件数据，我们应该同时发送sequence number,Receiver 接受到sequence number后看这是非是自己想要的sequence number,如果不是receiver直接弃package,发想要的ack给sender，如果将发送方大小数据固定会难以实现checksum
 				logStream.flush();
+	//			sendDateByte = new byte[1024];
 				logWrite(logStream,filePath,sequenceNumber,remoteIP,remotePort);
 				logStream.flush();
 		    	sequenceNumber +=1;
@@ -84,9 +85,11 @@ public class Sender {
 		    		//读取最新的ackNumber
 		    		ackNumber = Tcp_Head.ackNumber;//非完成版，暂时只做rst测试
 		    	}
+		    	sendDateByte = new byte[1004];
 		    	
 		    	
 			}
+			fileStream.close();
 		
 //			0x1 为1
 			header[13] = (byte) 0x1;
@@ -100,11 +103,10 @@ public class Sender {
 			System.arraycopy(sendDateByte, 0, header, 20, sendDateByte.length);
 			dp = new DatagramPacket(header, header.length, InetAddress.getByName(remoteIP), Tcp_Head.destPort);
 			ds.send(dp);	
-			
 			ds.close();
 			logStream.close();
-			fileStream.close();
 			
+			//在receiver 末端总会产生额外的内容，考完再研究,经过测试是读取文件的问题
 			System.out.println("finished");
 			System.exit(0);
 	    	
