@@ -74,37 +74,41 @@ public class Receiver {
 						byte[] buf =dp.getData();
 						byte[] header = new byte[20];
 						System.arraycopy(buf, 0, header, 0, 20);
+					
 						byte[] data = new byte[buf.length-20];
 						System.arraycopy(buf, 20, data, 0, buf.length-20);
 						byte[] seq = new byte[4];
 						System.arraycopy(header, 4, seq, 0, 4);
 						byte[] checksum = new byte[2];
 						System.arraycopy(header, 16, checksum, 0, 2);
-	//					System.out.println(Integer.parseInt(checksum.toString()));
 						int sendlength = Byte2Int2(checksum);
-			//			System.out.println(sendlength);
+						byte[] receiveChecksum = calcCheckSum(data);
+						int receivelength = Byte2Int2(receiveChecksum);
+	//					System.out.println("receivelength: "+ receivelength );
+		//				System.out.println("sendlength: "+ sendlength);
+						
 						int sequenceNumber = Byte2Int(seq);
-						seqQueue.add(sequenceNumber);
-				//		System.out.println(sequenceNumber==expectPck);
-				//		System.out.println(lastAck);
-					//	System.out.println(sequenceNumber);
-						System.out.println(sendlength);
-						System.out.println(dp.getData().length);
-						if(seqQueue.remove()==lastAck && sendlength==buf.length){
+		//				seqQueue.add(sequenceNumber);
+						if(sequenceNumber==lastAck && sendlength==receivelength){
 						//checksum的实现
 	
-							lastAck+=1;
 		                    printWriter.println(lastAck);
-		                    System.out.println("Receive successful");
-							fileOutput.write(data,0,data.length);
+							lastAck+=1;
+							if(header[13]==(byte) 0x1){
+								printWriter.println("close");
+								  break;
+							}
+		                    System.out.println("Receive successful. Seq: " + sequenceNumber);
+		                    fileOutput.flush();
 							fileOutput.flush();
+							
+		                    fileOutput.write(data);
+				//			fileOutput.write(data,0,data.length);
 						}else{
-							System.out.println("Receive failed");
+						    System.out.println("Receive failed. Seq: " + sequenceNumber);
 		                    printWriter.println(lastAck);
 						}
-	//					System.out.println(expectPck);
-						
-						receiveBuffer = new byte[1024];
+	
 						dp = new DatagramPacket(receiveBuffer, receiveBuffer.length);
 						ds.receive(dp);
 						datalength = dp.getLength();
@@ -112,6 +116,7 @@ public class Receiver {
 					ds.close();
 					fileOutput.close();
 					socket.close();
+					System.exit(0);
 					
 			//	}
 			
@@ -125,42 +130,50 @@ public class Receiver {
 		}
 		}
 	}
-
+	private byte[] calcCheckSum(byte[] sendDateByte) {
+		byte[] checksum = new byte[2];
+		for (int i = 0; i < sendDateByte.length; i += 2) {  
+            checksum[0] ^= sendDateByte[i];  
+            checksum[1] ^= sendDateByte[i + 1];  
+        }  
+        checksum[0] = (byte) ~checksum[0];  
+        checksum[1] = (byte) ~checksum[1];  		
+		return checksum;
+	}
 
 
 	public static void main(String[] args) {
 	//	new Receiver(args[0],args[1],args[2],args[3],args[4]);
-		new Receiver("file2.txt","20000","160.39.251.150","20001","logfile.txt");
+		new Receiver("file2.txt","20000","127.0.0.1","20001","logfile.txt");
 	}
-	 public static byte[] Int2Byte(int i) {   
-		  byte[] result = new byte[4];   
-		  result[0] = (byte)((i >> 24) & 0xFF);
-		  result[1] = (byte)((i >> 16) & 0xFF);
-		  result[2] = (byte)((i >> 8) & 0xFF); 
-		  result[3] = (byte)(i & 0xFF);
-		  return result;
+	 public static byte[] Int2Byte(int number) {   
+		  byte[] byteArray = new byte[4];   
+		  byteArray[0] = (byte)((number >> 24) & 0xFF);
+		  byteArray[1] = (byte)((number >> 16) & 0xFF);
+		  byteArray[2] = (byte)((number >> 8) & 0xFF); 
+		  byteArray[3] = (byte)(number & 0xFF);
+		  return byteArray;
 		 }
 	 
 	 
-	 public  static int Byte2Int(byte[] bytes) {
-		 int num = bytes[3] & 0xFF;
-		 num |= ((bytes[2] << 8) & 0xFF00);
-		 num |= ((bytes[1] << 16) & 0xFF0000);
-		 num |= ((bytes[0] << 24) & 0xFF000000);
-		 return num;		 
+	 public  static int Byte2Int(byte[] byteArray) {
+		 int number = byteArray[3] & 0xFF;
+		 number |= ((byteArray[2] << 8) & 0xFF00);
+		 number |= ((byteArray[1] << 16) & 0xFF0000);
+		 number |= ((byteArray[0] << 24) & 0xFF000000);
+		 return number;		 
 	}
-	 
-	 public static byte[] Int2Byte2(int i) {   
-		  byte[] result = new byte[2];   
-		  result[0] = (byte)(i & 0x00ff);
-		  result[1] = (byte)((i & 0xff00)>>8);
-		  return result;
+	 public static byte[] Int2Byte2(int number) {   
+		  byte[] byteArray = new byte[2];   
+		  byteArray[0] = (byte)(number & 0x00ff);
+		  byteArray[1] = (byte)((number & 0xff00)>>8);
+		  return byteArray;
 		 }
 	 
 	 
-	 public  static int Byte2Int2(byte[] bytes) {
-		 int num =   ((bytes[1] << 8) & 0xff00) | (bytes[0] & 0xff);
-		 return num;		 
+	 public  static int Byte2Int2(byte[] byteArray) {
+		 return  ((byteArray[1] << 8) & 0xff00) | (byteArray[0] & 0xff);
+		 
 	}
 	 
 

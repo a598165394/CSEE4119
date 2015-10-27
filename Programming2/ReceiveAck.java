@@ -28,12 +28,32 @@ public class ReceiveAck implements Runnable {
 	public void run() {
 		try {
 			String line;
+			boolean exit=false;
 			bufferedReader = new BufferedReader(new InputStreamReader(ackSocket.getInputStream()));
 			while(true){
 				while((line = bufferedReader.readLine())!=null){
+					if(line.equals("close")){
+			//			ackSocket.close();
+			//			System.exit(0);
+						exit =true;
+						break;
+					
+					}
 					System.out.println("The received ACK Number: "+line);
+					if(Tcp_Head.ackNumber==Integer.parseInt(line)){
+						if(Sender.contentBuffer.isEmpty()){
+							
+						}else{
+							Sender.contentBuffer.remove();
+						}
+					}
 					Tcp_Head.ackNumber = Integer.parseInt(line)+1;
+					
 				}
+				if(exit ==true){
+					break;
+				}
+				
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
