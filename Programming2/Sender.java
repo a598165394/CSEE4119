@@ -85,8 +85,8 @@ public class Sender {
 		    		//读取最新的ackNumber
 		    		ackNumber = Tcp_Head.ackNumber;//非完成版，暂时只做rst测试
 		    		Thread.sleep(20);
-		    		System.out.println("The seq in the block: # "+sequenceNumber);
-		    		System.out.println("The ack in the block: # "+ackNumber);
+		//    		System.out.println("The seq in the block: # "+sequenceNumber);
+		 //   		System.out.println("The ack in the block: # "+ackNumber);
 		    		
 		    	}
 		    	sendDateByte = new byte[104];
@@ -119,8 +119,8 @@ public class Sender {
 					
 				}
 	    		Thread.sleep(20);
-	    		System.out.println("The seq in the block: # "+sequenceNumber);
-	    		System.out.println("The ack in the block: # "+ackNumber);
+//	    		System.out.println("The seq in the block: # "+sequenceNumber);
+//	    		System.out.println("The ack in the block: # "+ackNumber);
 			}
 			fileStream.close();
 		
@@ -134,8 +134,40 @@ public class Sender {
 			System.arraycopy(checksum, 0, header, 16, 2);
 			System.arraycopy(Int2Byte2(Integer.parseInt(windows_Size)), 0, header, 14, 2);
 			System.arraycopy(sendDateByte, 0, header, 20, sendDateByte.length);
+			contentBuffer.add(header);
 			dp = new DatagramPacket(header, header.length, InetAddress.getByName(remoteIP), Tcp_Head.destPort);
 			ds.send(dp);	
+			while(sequenceNumber!=ackNumber){
+				ackNumber = Tcp_Head.ackNumber;//非完成版，暂时只做rst测试
+				byte[] result = contentBuffer.peek();
+				byte[] realseq = new byte[4];
+				System.arraycopy(result, 4, realseq, 0, 4);
+				System.out.println("The seq# we are going to retransfer: # " + Byte2Int(realseq));
+				Calendar calender = Calendar.getInstance();
+				long startTime = calender.getTimeInMillis();
+				long recentTime;
+		//		contentBuffer.add(result);
+				dp = new DatagramPacket(result, result.length, InetAddress.getByName(remoteIP), Tcp_Head.destPort);
+				ds.send(dp);
+				while(Byte2Int(realseq)+1!=Tcp_Head.ackNumber){
+	//				System.out.println("In this loop or not");
+					Calendar secCalender = Calendar.getInstance();
+					recentTime = secCalender.getTimeInMillis();
+					if(recentTime-startTime>=reTime){
+						byte[] seseq = new byte[4];
+						System.arraycopy(result, 4, seseq, 0, 4);
+						System.out.println("Second Retansfer: #  "+ Byte2Int(seseq));
+						dp = new DatagramPacket(result, result.length, InetAddress.getByName(remoteIP), Tcp_Head.destPort);
+						ds.send(dp);
+						Calendar newCalendar = Calendar.getInstance();
+						startTime = newCalendar.getTimeInMillis();
+					}
+					
+				}
+	    		Thread.sleep(20);
+	    //		System.out.println("The seq in the block: # "+sequenceNumber);
+	    //		System.out.println("The ack in the block: # "+ackNumber);
+			}
 			ds.close();
 			logStream.close();
 			System.out.println("finished");
