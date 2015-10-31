@@ -37,7 +37,7 @@ public class Receiver {
 
 		String line;
 		
-		byte[] receiveBuffer = new byte[1024];
+		byte[] receiveBuffer = new byte[124];
 		try {
 			ds = new DatagramSocket(Integer.parseInt(listeningPort));
 			 fileOutput = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(fileName)));
@@ -55,8 +55,8 @@ public class Receiver {
 		try {
 			//	if(dp!=null){
 				int datalength ;
-				int expectPck= 0;
-				int lastAck =0;
+				int expectAck= 0;
+				int lastAck =-1;
 					dp = new DatagramPacket(receiveBuffer, receiveBuffer.length);
 					
 					ds.receive(dp);
@@ -64,13 +64,15 @@ public class Receiver {
 					if(datalength!=0){
 						 socket = new Socket(senderIP,Integer.valueOf(senderPort));
 						 System.out.println("Send a socket connection");
-		                printWriter = new PrintWriter(socket.getOutputStream(), true);  
+		                printWriter = new PrintWriter(socket.getOutputStream(), true); 
+		                
 		               
 					}
 					while(datalength!=0){
 						loop+=1;
 						arrivedRight =false;
 						connectionExit = true;
+						
 						byte[] buf =dp.getData();
 						byte[] header = new byte[20];
 						System.arraycopy(buf, 0, header, 0, 20);
@@ -83,32 +85,31 @@ public class Receiver {
 						System.arraycopy(header, 16, checksum, 0, 2);
 						int sendlength = Byte2Int2(checksum);
 						byte[] receiveChecksum = calcCheckSum(data);
-						int receivelength = Byte2Int2(receiveChecksum);
-						System.out.println("receivelength: "+ receivelength );
-						System.out.println("sendlength: "+ sendlength);
-						
+						int receivelength = Byte2Int2(receiveChecksum);				
 						int sequenceNumber = Byte2Int(seq);
-		//				seqQueue.add(sequenceNumber);
-						if(sequenceNumber==lastAck && sendlength==receivelength){
+						System.out.println("Arrived SequenceNumber: # "+sequenceNumber);
+						System.out.println("Expect Ack Number: # "+expectAck);
+						if(sequenceNumber==expectAck && sendlength==receivelength){
 						//checksum的实现
-	
-		                    printWriter.println(lastAck);
+							expectAck+=1;
 							lastAck+=1;
+		                    printWriter.println(lastAck);
 							if(header[13]==(byte) 0x1){
 								printWriter.println("close");
 								  break;
 							}
 		                    System.out.println("Receive successful. Seq: " + sequenceNumber);
+		              //      lastAck = sequenceNumber;
 		                  fileOutput.flush();
 							
 		                    fileOutput.write(data);
 		                    fileOutput.flush();
-				//			fileOutput.write(data,0,data.length);
 						}else{
 						    System.out.println("Receive failed. Seq: " + sequenceNumber);
+						//    lastAck = lastAck -1;
 		                    printWriter.println(lastAck);
 						}
-	
+						receiveBuffer = new byte[124];
 						dp = new DatagramPacket(receiveBuffer, receiveBuffer.length);
 						ds.receive(dp);
 						datalength = dp.getLength();
@@ -146,7 +147,7 @@ public class Receiver {
 
 	public static void main(String[] args) {
 	//	new Receiver(args[0],args[1],args[2],args[3],args[4]);
-		new Receiver("file2.txt","20000","127.0.0.1","20001","logfile.txt");
+		new Receiver("file2.txt","41194","160.39.135.223","41193","logfile.txt");
 	}
 	 public static byte[] Int2Byte(int number) {   
 		  byte[] byteArray = new byte[4];   

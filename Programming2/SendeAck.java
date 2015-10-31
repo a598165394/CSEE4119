@@ -9,7 +9,8 @@ public class SendeAck implements Runnable {
 	int loop =0;
 	public SendeAck(String senderIP, String senderPort) {
 		this.IP = senderIP;
-		this.port = Integer.parseInt(senderPort);
+		this.port =41191;
+	//	this.port = Integer.parseInt(senderPort);
 		
 	}
 

@@ -9,45 +9,55 @@ public class ReceiveAck implements Runnable {
 	private String IP_Address;
 	private BufferedReader bufferedReader;
 	private int portNumber;
+	public int count;
 	private Socket ackSocket;
 	public ReceiveAck(String IP_Address, int portNumber){
+	
 		this.IP_Address = IP_Address;
 		this.portNumber = portNumber;
-		try {
-			ServerSocket serverSocket = new ServerSocket(portNumber);
-			 ackSocket = serverSocket.accept();
-			
-			
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+//		try {
+//			ServerSocket serverSocket = new ServerSocket(portNumber);
+//			System.out.println("Waiting for Receiver to connect ");
+//			 ackSocket = serverSocket.accept();
+//			 System.out.println("Connection build successful");
+//			 
+//			
+//			
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
 		
 		
 	}
 	@Override
 	public void run() {
 		try {
+			if(count==0){
+				ServerSocket serverSocket = new ServerSocket(portNumber);
+				System.out.println("Waiting for Receiver to connect ");
+				 ackSocket = serverSocket.accept();
+				 System.out.println("Connection build successful");
+			}
+			count++;
 			String line;
 			boolean exit=false;
 			bufferedReader = new BufferedReader(new InputStreamReader(ackSocket.getInputStream()));
 			while(true){
 				while((line = bufferedReader.readLine())!=null){
 					if(line.equals("close")){
-			//			ackSocket.close();
-			//			System.exit(0);
 						exit =true;
 						break;
-					
 					}
-					System.out.println("The received ACK Number: "+line);
+					
 					if(Tcp_Head.ackNumber==Integer.parseInt(line)){
-						if(Sender.contentBuffer.isEmpty()){
-							
-						}else{
+						if(Sender.contentBuffer.size()!=0){
 							Sender.contentBuffer.remove();
 						}
+						System.out.println("Ack Number send back: #" +line );
+						Tcp_Head.ackNumber = Integer.parseInt(line)+1;
+						Tcp_Head.sequenceNumber = Integer.parseInt(line)+1;
 					}
-					Tcp_Head.ackNumber = Integer.parseInt(line)+1;
+	
 					
 				}
 				if(exit ==true){
