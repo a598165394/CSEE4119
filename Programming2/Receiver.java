@@ -199,7 +199,7 @@ public class Receiver {
 			logfileStream.write(ts.toString().getBytes(),0,ts.toString().getBytes().length);
 			logfileStream.flush();
 	        logfileStream.writeBytes( " "+senderIP + " "+InetAddress.getLocalHost().toString()+" Sequence # "+String.valueOf(sequenceNumber)
-	        		+" ACK # " + String.valueOf(expectAck)+" "+flag+" "+String.valueOf(recLog)+ "\n");
+	        		+" ACK # " + String.valueOf(expectAck)+" "+flag+" "+ "\n");
 	        recLog+=1;
 	       
 	        logfileStream.flush();

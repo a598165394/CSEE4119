@@ -452,7 +452,7 @@ public class Sender {
     	logStream.write(ts.toString().getBytes(),0,ts.toString().getBytes().length);
     	logStream.writeBytes(" "+filePath+" "+remoteIP+ " "+remotePort+ " Sequence # "+String.valueOf(sequenceNumber)+" ACK # "+String.valueOf(ackNumber)
     			+" "+flag+ " "+"Estimated RTT is "+ String.valueOf(RTT));
-    	logStream.writeBytes(" "+String.valueOf(recLog));
+   // 	logStream.writeBytes(" "+String.valueOf(recLog));
     	recLog +=1;
     	logStream.writeBytes("\n");
 	}
