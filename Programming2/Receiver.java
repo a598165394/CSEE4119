@@ -1,10 +1,14 @@
 
 
 import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
 import java.io.DataOutputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -17,9 +21,10 @@ import java.util.Queue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import sun.security.krb5.internal.SeqNumber;
+
 
 public class Receiver {
+	private static final String vector = null;
 	private static ExecutorService executorService = Executors.newCachedThreadPool();  
 	Queue<Integer> seqQueue = new LinkedList<Integer>();
 	Queue<Integer> ackQueue = new LinkedList<Integer>();
@@ -36,20 +41,26 @@ public class Receiver {
 		DatagramSocket ds = null;
 		DataOutputStream fileOutput = null;
 		DataOutputStream logfileStream = null ;
+		BufferedWriter bufwrite= null;
+		int buffersize =150;
 		
 
 		String line;
 		
-		byte[] receiveBuffer = new byte[124];
+		byte[] receiveBuffer = new byte[buffersize];
 		try {
 			ds = new DatagramSocket(Integer.parseInt(listeningPort));
 			logfileStream= new DataOutputStream(new BufferedOutputStream(new FileOutputStream(logFile)));
 			fileOutput = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(fileName)));
+	//		bufwrite = new BufferedWriter(new FileWriter(fileName));
 		} catch (NumberFormatException e2) {
 			e2.printStackTrace();
 		} catch (SocketException e2) {
 			e2.printStackTrace();
 		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	
@@ -67,12 +78,13 @@ public class Receiver {
 //					System.out.println("Send a socket connection");
 		            printWriter = new PrintWriter(socket.getOutputStream(), true);         
 				}
-					while(datalength!=0){
+					while(receiveBuffer!=null){
 						loop+=1;
 						arrivedRight =false;
 						connectionExit = true;
 						
 						byte[] buf =dp.getData();
+		//				receiveBuffer = new byte[buffersize];
 						byte[] header = new byte[20];
 						System.arraycopy(buf, 0, header, 0, 20);
 					
@@ -88,8 +100,7 @@ public class Receiver {
 						int sequenceNumber = Byte2Int(seq);
 		//				System.out.println("Arrived SequenceNumber: # "+sequenceNumber);
 		//				System.out.println("Expect Ack Number: # "+expectAck);
-						//写一个二叉查找树，看接受到的sequencenumber是不是第一次出现，第一次出现的话，返回sequence number给sender 的时候给一个第一次出现的flag，
-						
+					
 						if(sequenceNumber==expectAck && sendlength==receivelength){
 						
 							expectAck+=1;
@@ -98,37 +109,82 @@ public class Receiver {
 		                    //Received FIN
 							if(header[13]==(byte) 0x1){
 	//							 System.out.println("Receive successful. Seq: " + sequenceNumber);
+//								fileOutput.flush();
+				//				fileOutput.writeByte('\0');
+								fileOutput.flush();
 								logfileStream.flush();
+								fileOutput.close();
 			                    logWrite(logfileStream, senderIP, sequenceNumber, lastAck,"File Receive Completed Successful");
 			                    logfileStream.flush();
 								printWriter.println("close");
 								break;
-							}
-		  //                  System.out.println("Receive successful. Seq: " + sequenceNumber);
-	//	                    System.out.println("Send back");
-		                    logfileStream.flush();
+							}else{
+
 		                    logWrite(logfileStream, senderIP, sequenceNumber, lastAck,"Reception Successful");
 		                    logfileStream.flush();
-		                    fileOutput.flush();						
-		                    fileOutput.write(data);
+		                  
+		                    int lenbuff = 0;
+		                    for(int i=0;i<buffersize-20;i++){	
+		                    	if(data[i]==0x00){
+		                //    		System.out.println("In the loop or not");
+		                    		lenbuff = i-1;
+		                    		 byte[] lastPart = new byte[lenbuff+1];
+		 		                	System.arraycopy(data, 0, lastPart, 0, lenbuff);
+		 		                	lastPart[lenbuff] = data[lenbuff];
+		 		                	fileOutput.write(lastPart);
+		 		             //   	fileOutput.writeBytes("\n");
+		 		                	i=buffersize;
+		                    		break;
+		                    	}
+		                    	if(i==buffersize-21){
+		                    		lenbuff = buffersize-20;
+		                    		fileOutput.write(data);
+				                    fileOutput.flush();
+		                    	}
+		                    }
+		                
+		                	
+//		                    bufwrite.flush();
+//		                    
+//		                    int read =0;
+//  	                    InputStream is = new ByteArrayInputStream(data); 
+//		                    byte[] temp = new byte[buffersize];
+//		            
+//		                    read = is.read(temp);
+//		                    System.out.println(read);
+//		                    fileOutput.write(temp, 0, read);
+//		                    fileOutput.flush();	
+		         //           int len =System.in.read(data);
+		    //                int read = 
+		            //        fileOutput.write(data, 0, len);
+		                    
+		     //               bufwrite.write(data.toString());
+		      //              bufwrite.flush();
 		                    fileOutput.flush();
+							}
 						}else{
 	//					    System.out.println("Receive failed. Seq: " + sequenceNumber);
+							
 						    logfileStream.flush();
 		                    logWrite(logfileStream, senderIP, sequenceNumber, lastAck,"Reception failed");
 		                    logfileStream.flush();
 						    printWriter.println(lastAck);
 						}
-						receiveBuffer = new byte[124];
+						receiveBuffer = new byte[buffersize];
 						dp = new DatagramPacket(receiveBuffer, receiveBuffer.length);
 						ds.receive(dp);
 						datalength = dp.getLength();
 					}
 					ds.close();
-		//			logWrite(logfileStream, senderIP, Tcp_Head.sequenceNumber, lastAck,"Sender and Receiver will close");
-					fileOutput.flush();
-					fileOutput.flush();
-					fileOutput.close();
+				
+	//				fileOutput.writeBytes("\n");
+				
+	//				logWrite(logfileStream, senderIP, Tcp_Head.sequenceNumber, lastAck,"Sender and Receiver will close");
+	//				fileOutput.flush();
+	//				bufwrite.close();
+//					fileOutput.flush();
+//					fileOutput.close();
+//					fileOutput.flush();
 					System.out.println("Delivery completed successfully");
 					socket.close();
 					System.exit(0);		
@@ -150,6 +206,7 @@ public class Receiver {
 	        logfileStream.writeBytes( " "+senderIP + " "+InetAddress.getLocalHost().toString()+" Sequence # "+String.valueOf(sequenceNumber)
 	        		+" ACK # " + String.valueOf(expectAck)+" "+flag+" "+String.valueOf(recLog)+ "\n");
 	        recLog+=1;
+	       
 	        logfileStream.flush();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -171,7 +228,7 @@ public class Receiver {
 
 	public static void main(String[] args) {
 		new Receiver(args[0],args[1],args[2],args[3],args[4]);
-	//	new Receiver("file2.txt","41194","160.39.134.227","41193","logfileReceiver.txt");
+	//	new Receiver("file2.txt","41194","127.0.0.1","41193","logfileReceiver.txt");
 	}
 	 public static byte[] Int2Byte(int number) {   
 		  byte[] byteArray = new byte[4];   
