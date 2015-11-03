@@ -4,10 +4,13 @@ JC = javac
 .java.class:
 	 $(JC) $(JFLAGS) $*.java
 
+
+
 CLASSES = \
-  Server.java \
-  Client.java \
- 
+	Receiver.java \
+	ReceiveAck.java \
+	Sender.java \
+	Tcp_Head.java \
 
 default: classes
 

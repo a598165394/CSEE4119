@@ -5,13 +5,6 @@
 	c.
         1. The way to run the code, frist we need unzip from the hd2337_java.zip.
 	2. Then type make in terminal, the ReceiveAck.class,Sender.class, Receiver.class and Tcp_Head.class will occur automatic.
-	3. Then you need Receiver first, the way to invoke server will be " java
-           Server file.txt 160.39.134.227 41192 41193 logfileSend.txt","4" ",  you can input the port number after Server. For example "java Server
-           5358"
-	4. Then you need revoke client. The way to invoke client will be "java
-           Client" , you can input the address of the server and the port number of the
-           server after Client. For example " java Client 127.0.0.1 5358"
-	5. The mutiple client could be implement just run the "java Client" in different terminal. 
-
-	d.The way to use command is totally same as the Appendix:Example in programming+Assignment+1 description
-	 
+	3. Then you need revoke Receiver first, the way to invoke server will be  java Receiver file2.txt 41194 127.0.0.1 41193 logfileReceiver.txt
+	4. Then you need revoke Sender. The way to invoke sender will be java Sender file.txt 127.0.0.1 41192 41193 logfileSend.txt 4
+  
