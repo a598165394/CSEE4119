@@ -6,7 +6,7 @@ import java.net.Socket;
 import java.util.Calendar;
 import java.util.Iterator;
 
-//sender 开启的ack receive应该是作为一种服务器的形态，只接受，不做任何行为
+
 public class ReceiveAck implements Runnable {
 	private String IP_Address;
 	private BufferedReader bufferedReader;

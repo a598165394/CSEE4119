@@ -41,6 +41,7 @@ public class Sender {
     private DatagramSocket ds;
 	public int reTranNumber= 0;
     int sendport = 41191;
+    private int buffersize = 130;
     public int recLog=1;
 	public Sender(String filePath, String remoteIP, String remotePort, String ackPort, String logFile, String windows_Size)  {
 		try {
@@ -54,7 +55,7 @@ public class Sender {
 			Tcp_Head.destPort = Integer.parseInt(remotePort);
 			int loop =0;
 			int ackNumber=0,sequenceNumber=0;
-			byte[] sendDateByte = new byte[104];
+			byte[] sendDateByte = new byte[buffersize];
 			byte[] header =new byte[Tcp_Head.headerLength+sendDateByte.length];
 			byte[] seq,ack,checksum;
 			while((endNot =fileStream.read(sendDateByte))!=-1 ){
@@ -100,7 +101,7 @@ public class Sender {
 		    		ackNumber = Tcp_Head.ackNumber;
 		    		Thread.sleep(20);
 		    	}
-		    	sendDateByte = new byte[104];
+		    	sendDateByte = new byte[buffersize];
 			}
 			Thread.sleep(100);
 			while(sequenceNumber>ackNumber+1){
@@ -119,9 +120,12 @@ public class Sender {
 				long recentTime;
 				int len =unReSendList.size();
 					for(int i=0;i<len;i++){
-						if(unReSendList.get(i)==Byte2Int(realseq)){	
+						if(unReSendList.get(i)==Byte2Int(realseq)){
+							
 							unReSendList.remove(i);
-							sendTimeList.remove(i);
+							if(i<sendTimeList.size()){
+								sendTimeList.remove(i);
+							}
 							break;
 						}
 					}
@@ -156,7 +160,9 @@ public class Sender {
 						for(int i=0;i<len;i++){
 							if(unReSendList.get(i)==Byte2Int(seseq)){
 								unReSendList.remove(i);
-								sendTimeList.remove(i);
+								if(i<sendTimeList.size()){
+									sendTimeList.remove(i);
+								}
 								break;
 							}
 						}
@@ -253,7 +259,9 @@ public class Sender {
 						for(int i=0;i<len;i++){
 							if(unReSendList.get(i)==Byte2Int(seseq)){
 								unReSendList.remove(i);
-								sendTimeList.remove(i);
+								if(i<sendTimeList.size()){
+									sendTimeList.remove(i);
+								}
 								break;
 							}
 						}
@@ -285,11 +293,11 @@ public class Sender {
 //				System.out.print(itr.next()+ " ");
 //			}
 //			System.out.println();
-			int totalbyteSend = (ackNumber+reTranNumber+1)*124;
+			int totalbyteSend = (recLog-1)*buffersize;
 			System.out.println("Delivery completed successfully");
 			System.out.println("Total bytes send = "+ totalbyteSend);
 			System.out.println("Segments sent = "+ (ackNumber+1));
-			System.out.println("Segments retransmitted = " + (reTranNumber));
+			System.out.println("Segments retransmitted = " + (recLog-ackNumber-2));
 			System.exit(0);
 	    	
 		} catch (FileNotFoundException e) {
@@ -353,7 +361,9 @@ public class Sender {
 				for(int i=0;i<len;i++){
 					if(unReSendList.get(i)==Byte2Int(realseq)){
 						unReSendList.remove(i);
-						sendTimeList.remove(i);
+						if(i<sendTimeList.size()){
+							sendTimeList.remove(i);
+						}
 						break;
 					}
 				}
@@ -400,7 +410,9 @@ public class Sender {
 						for(int i=0;i<len;i++){
 							if(unReSendList.get(i)==Byte2Int(seseq)){
 								unReSendList.remove(i);
-								sendTimeList.remove(i);
+								if(i<sendTimeList.size()){
+									sendTimeList.remove(i);
+								}
 								break;
 							}
 						}
@@ -476,7 +488,7 @@ public class Sender {
 	 
 
 	public static void main(String[] args) {
-	//	new Sender("file.txt","160.39.134.227","41192","41193","logfileSend.txt","4");
+	//	new Sender("file.txt","127.0.0.1","41192","41193","logfileSend.txt","20");
 		new Sender(args[0],args[1],args[2],args[3],args[4],args[5]);
 	}
 
