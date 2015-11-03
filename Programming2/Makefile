@@ -17,4 +17,4 @@ default: classes
 classes: $(CLASSES:.java=.class)
 	
 clean:
-	$(RM) *.class -- *~
+	$(RM) *.class -- *~ logfileReceiver.txt logfileSend.txt file2.txt

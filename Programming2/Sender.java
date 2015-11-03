@@ -194,7 +194,7 @@ public class Sender {
 			fileStream.close();
 			
 		
-//			0x1 为1
+//			0x1 means 1
 			header[13] = (byte) 0x1;
 			seq = Int2Byte(sequenceNumber);
 			System.arraycopy(seq, 0, header, 4, 4);
@@ -292,7 +292,7 @@ public class Sender {
 //				System.out.print(itr.next()+ " ");
 //			}
 //			System.out.println();
-			int totalbyteSend = (recLog-1)*buffersize;
+			int totalbyteSend = (recLog-1)*(buffersize+20);
 			System.out.println("Delivery completed successfully");
 			System.out.println("Total bytes send = "+ totalbyteSend);
 			System.out.println("Segments sent = "+ (ackNumber+1));
