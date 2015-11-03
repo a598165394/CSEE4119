@@ -65,6 +65,7 @@ public class Receiver {
 				int datalength ;
 				int expectAck= 0;
 				int lastAck =-1;
+				boolean firstClose =false;
 				dp = new DatagramPacket(receiveBuffer, receiveBuffer.length);
 				ds.receive(dp);
 				datalength = dp.getLength();
@@ -100,13 +101,19 @@ public class Receiver {
 		//                    printWriter.println(lastAck);
 		                    //Received FIN
 							if(header[13]==(byte) 0x1){
+								printWriter.println(lastAck);
+			//					firstClose +=1;
 								fileOutput.flush();
 								logfileStream.flush();
 								fileOutput.close();
 			                    logWrite(logfileStream, senderIP, sequenceNumber, lastAck,"File Receive Completed Successful");
 			                    logfileStream.flush();
-								printWriter.println("close");
-								break;
+								if(firstClose==false){
+									printWriter.println("close");
+									firstClose = true;
+								}
+								
+							//	break;
 							}else{
 								printWriter.println(lastAck);
 			                    logWrite(logfileStream, senderIP, sequenceNumber, lastAck,"Reception Successful");
@@ -141,6 +148,9 @@ public class Receiver {
 						dp = new DatagramPacket(receiveBuffer, receiveBuffer.length);
 						ds.receive(dp);
 						datalength = dp.getLength();
+						if(receiveBuffer[0]==0x00 && firstClose == true){
+							break;
+						}
 					}
 					ds.close();
 					System.out.println("Delivery completed successfully");
