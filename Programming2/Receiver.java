@@ -2,13 +2,10 @@
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
-import java.io.ByteArrayInputStream;
 import java.io.DataOutputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -24,7 +21,6 @@ import java.util.concurrent.Executors;
 
 
 public class Receiver {
-	private static final String vector = null;
 	private static ExecutorService executorService = Executors.newCachedThreadPool();  
 	Queue<Integer> seqQueue = new LinkedList<Integer>();
 	Queue<Integer> ackQueue = new LinkedList<Integer>();
@@ -52,7 +48,6 @@ public class Receiver {
 			ds = new DatagramSocket(Integer.parseInt(listeningPort));
 			logfileStream= new DataOutputStream(new BufferedOutputStream(new FileOutputStream(logFile)));
 			fileOutput = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(fileName)));
-	//		bufwrite = new BufferedWriter(new FileWriter(fileName));
 		} catch (NumberFormatException e2) {
 			e2.printStackTrace();
 		} catch (SocketException e2) {
@@ -224,11 +219,12 @@ public class Receiver {
         checksum[1] = (byte) ~checksum[1];  		
 		return checksum;
 	}
+	
 
 
 	public static void main(String[] args) {
 		new Receiver(args[0],args[1],args[2],args[3],args[4]);
-	//	new Receiver("file2.txt","41194","127.0.0.1","41193","logfileReceiver.txt");
+	//	new Receiver("file2.txt","41194","127.0.0.1","41195","logfileReceiver.txt");
 	}
 	 public static byte[] Int2Byte(int number) {   
 		  byte[] byteArray = new byte[4];   

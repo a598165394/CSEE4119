@@ -24,9 +24,8 @@ import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import com.sun.source.tree.BinaryTree;
-
 public class Sender {
+	private int sendport = 41191; 
     private static ExecutorService executorService = Executors.newCachedThreadPool(); 
     public static Queue<byte[]> contentBuffer = new LinkedList<byte[]>();
     public static int estimatedRTT =200;
@@ -40,7 +39,7 @@ public class Sender {
     public DatagramPacket dp;
     private DatagramSocket ds;
 	public int reTranNumber= 0;
-    int sendport = 41191;
+  
     private int buffersize = 130;
     public int recLog=1;
 	public Sender(String filePath, String remoteIP, String remotePort, String ackPort, String logFile, String windows_Size)  {
@@ -488,7 +487,7 @@ public class Sender {
 	 
 
 	public static void main(String[] args) {
-	//	new Sender("file.txt","127.0.0.1","41192","41193","logfileSend.txt","20");
+//		new Sender("file.txt","127.0.0.1","41192","41195","logfileSend.txt","20");
 		new Sender(args[0],args[1],args[2],args[3],args[4],args[5]);
 	}
 
