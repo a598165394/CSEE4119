@@ -110,7 +110,13 @@ public class Receiver {
 								fileOutput.flush();
 								logfileStream.flush();
 								fileOutput.close();
-			                    logWrite(logfileStream, senderIP, sequenceNumber, lastAck,"File Receive Completed Successful");
+								if(logFile.trim().equals("stdout")){
+									Timestamp ts = new Timestamp(System.currentTimeMillis());
+									System.out.println(ts+" "+ senderIP+  " "+ InetAddress.getLocalHost().toString()+ " Sequence # "+String.valueOf(sequenceNumber)+" ACK #: "+String.valueOf(expectAck)
+											+" FIN Received. File Receive Completed Successful"+ "\n");
+								}else{
+									logWrite(logfileStream, senderIP, sequenceNumber, lastAck,"File Receive Completed Successful");
+								}
 //			                    System.out.println("The number of fail: "+failNum);
 //			                    System.out.println(lastAck);
 			                    logfileStream.flush();
@@ -124,7 +130,13 @@ public class Receiver {
 								break;
 							}else{
 								printWriter.println(lastAck);
-			                    logWrite(logfileStream, senderIP, sequenceNumber, lastAck,"Reception Successful");
+								if(logFile.trim().equals("stdout")){
+									Timestamp ts = new Timestamp(System.currentTimeMillis());
+									System.out.println(ts+" "+ senderIP+  " "+ InetAddress.getLocalHost().toString()+ " Sequence # "+String.valueOf(sequenceNumber)+" ACK #: "+String.valueOf(expectAck)
+											+" Pak Receive Successful"+ "\n");
+								}else{
+									logWrite(logfileStream, senderIP, sequenceNumber, lastAck,"Reception Successful");
+								}
 			                    logfileStream.flush();
 			                    int lenbuff = 0;
 			                    for(int i=0;i<buffersize-20;i++){	
@@ -148,7 +160,13 @@ public class Receiver {
 						     printWriter.println(lastAck);
 						}else{
 						    logfileStream.flush();
-		                    logWrite(logfileStream, senderIP, sequenceNumber, lastAck,"Reception failed");
+							if(logFile.trim().equals("stdout")){
+								Timestamp ts = new Timestamp(System.currentTimeMillis());
+								System.out.println(ts+" "+ senderIP+  " "+ InetAddress.getLocalHost().toString()+ " Sequence # "+String.valueOf(sequenceNumber)+" ACK #: "+String.valueOf(expectAck)
+										+" Reception failed"+ "\n");
+							}else{
+								logWrite(logfileStream, senderIP, sequenceNumber, lastAck,"Reception failed");
+							}
 		                    logfileStream.flush();
 		                    failNum+=1;
 						    printWriter.println(lastAck);
