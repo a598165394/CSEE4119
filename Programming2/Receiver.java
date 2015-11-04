@@ -108,12 +108,12 @@ public class Receiver {
 								fileOutput.close();
 			                    logWrite(logfileStream, senderIP, sequenceNumber, lastAck,"File Receive Completed Successful");
 			                    logfileStream.flush();
-								if(firstClose==false){
-									printWriter.println("close");
-									firstClose = true;
-								}
+						//		if(firstClose==false){
+						//			printWriter.println("close");
+						//			firstClose = true;
+						//		}
 								
-							//	break;
+								break;
 							}else{
 								printWriter.println(lastAck);
 			                    logWrite(logfileStream, senderIP, sequenceNumber, lastAck,"Reception Successful");
@@ -148,9 +148,9 @@ public class Receiver {
 						dp = new DatagramPacket(receiveBuffer, receiveBuffer.length);
 						ds.receive(dp);
 						datalength = dp.getLength();
-						if(receiveBuffer[0]==0x00 && firstClose == true){
-							break;
-						}
+					//	if(receiveBuffer[0]==0x00 && firstClose == true){
+					//		break;
+					//	}
 					}
 					ds.close();
 					System.out.println("Delivery completed successfully");
