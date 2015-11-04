@@ -25,7 +25,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class Sender {
-	private int sendport = 9231; 
+	private int sendport = 41191; 
     private static ExecutorService executorService = Executors.newCachedThreadPool(); 
     public static Queue<byte[]> contentBuffer = new LinkedList<byte[]>();
     public static int estimatedRTT =200;
@@ -167,19 +167,6 @@ public class Sender {
 						}
 						dp = new DatagramPacket(result, result.length, InetAddress.getByName(remoteIP), Tcp_Head.destPort);
 						ds.send(dp);
-					
-//						
-//						if(reSendList.size()==0){
-//							reSendList.add(Byte2Int(seseq));
-//						}
-//						for(int i=0;i<reSendList.size();i++){
-//							if(reSendList.get(i)==Byte2Int(seseq)){
-//								break;
-//							}
-//							if(i==reSendList.size()-1){
-//								reSendList.add(Byte2Int(seseq));
-//							}
-//						}
 						
 						reTranNumber+=1;
 						logWrite(logStream,filePath,Byte2Int(seseq),remoteIP,remotePort,ackNumber,"retransmitted",estimatedRTT);
@@ -280,18 +267,6 @@ public class Sender {
 			}
 			ds.close();
 			logStream.close();
-//			Iterator unitr = unReSendList.iterator();
-//			System.out.println("Unresend seq: ");
-//			while(unitr.hasNext()){
-//				System.out.print(unitr.next()+" ");
-//			}
-//			System.out.println();
-//			System.out.println("resend seq: ");
-//			Iterator itr = reSendList.iterator();
-//			while(itr.hasNext()){
-//				System.out.print(itr.next()+ " ");
-//			}
-//			System.out.println();
 			int totalbyteSend = (recLog-1)*(buffersize+20);
 			System.out.println("Delivery completed successfully");
 			System.out.println("Total bytes send = "+ totalbyteSend);
@@ -355,44 +330,27 @@ public class Sender {
 				if(contentBuffer.size()==0|| result ==null){
 					return;
 				}
+				
 				System.arraycopy(result, 4, realseq, 0, 4);
 				int len = unReSendList.size();
-				for(int i=0;i<len;i++){
-					if(unReSendList.get(i)==Byte2Int(realseq)){
-						unReSendList.remove(i);
-						if(i<sendTimeList.size()){
-							sendTimeList.remove(i);
+				for(int K=0;K<len;K++){
+					if( K<unReSendList.size() && unReSendList.get(K)==Byte2Int(realseq)){
+						unReSendList.remove(K);
+						if(K<sendTimeList.size()){
+							sendTimeList.remove(K);
 						}
 						break;
 					}
 				}
-//				if(reSendList.size()==0){
-//					reSendList.add(Byte2Int(realseq));
-//				}
-//				for(int i=0;i<reSendList.size();i++){
-//					if(reSendList.get(i)==Byte2Int(realseq)){
-//						break;
-//					}
-//					if(i==reSendList.size()-1){
-//						reSendList.add(Byte2Int(realseq));
-//					}
-//				}
-//				
-//				System.out.println(" The seq# we are going to retransfer: # " + Byte2Int(realseq));
 				Calendar calender = Calendar.getInstance();
 				long startTime = calender.getTimeInMillis();
 				long recentTime;
 		//		contentBuffer.add(result);
 				dp = new DatagramPacket(result, result.length, InetAddress.getByName(IP), Tcp_Head.destPort);
 				ds.send(dp);
-		
+//				Thread.sleep(10);
 				logWrite(logwriteStream,sourcefile,Byte2Int(realseq),IP,desPort,ack,"retransmitted",estimatedRTT);
-			
-	
-	
 				reTranNumber+=1;
-		//		logWrite(logStream,filePath,Byte2Int(realseq),IP,remotePort,ackNumber,"retransmitted",reTime);
-	
 				while(Byte2Int(realseq)+1!=Tcp_Head.ackNumber){
 				
 					Calendar secCalender = Calendar.getInstance();
@@ -415,22 +373,9 @@ public class Sender {
 								break;
 							}
 						}
-			
 						logWrite(logwriteStream,sourcefile,Byte2Int(realseq),IP,desPort,ack,"retransmitted",estimatedRTT);
 						ds.send(dp);
 					
-//						System.out.println(" The seq# we are going to retransfer: # " + Byte2Int(seseq));
-//						if(reSendList.size()==0){
-//							reSendList.add(Byte2Int(seseq));
-//						}
-//						for(int i=0;i<reSendList.size();i++){
-//							if(reSendList.get(i)==Byte2Int(seseq)){
-//								break;
-//							}
-//							if(i==reSendList.size()-1){
-//								reSendList.add(Byte2Int(seseq));
-//							}
-//						}
 						Calendar newCalendar = Calendar.getInstance();
 						startTime = newCalendar.getTimeInMillis();
 					}
@@ -487,7 +432,7 @@ public class Sender {
 	 
 
 	public static void main(String[] args) {
-//		new Sender("file.txt","127.0.0.1","41192","41195","logfileSend.txt","20");
+	//	new Sender("file.txt","127.0.0.1","41192","41195","logfileSend.txt","20");
 		new Sender(args[0],args[1],args[2],args[3],args[4],args[5]);
 	}
 

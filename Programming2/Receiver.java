@@ -28,6 +28,7 @@ public class Receiver {
 	public static boolean arrivedRight = false;
 	public static int loop = 0;
 	public int recLog =1;
+	private int failNum=0;
 
 	private PrintWriter printWriter;
 	private Socket socket;
@@ -55,7 +56,6 @@ public class Receiver {
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	
@@ -98,21 +98,26 @@ public class Receiver {
 						if(sequenceNumber==expectAck && sendlength==receivelength){
 							expectAck+=1;
 							lastAck+=1;
-		//                    printWriter.println(lastAck);
 		                    //Received FIN
 							if(header[13]==(byte) 0x1){
+								printWriter.flush();
 								printWriter.println(lastAck);
-			//					firstClose +=1;
+								printWriter.flush();
+								Thread.sleep(1300);
 								fileOutput.flush();
 								logfileStream.flush();
 								fileOutput.close();
 			                    logWrite(logfileStream, senderIP, sequenceNumber, lastAck,"File Receive Completed Successful");
+			                    System.out.println("The number of fail: "+failNum);
+			                    System.out.println(lastAck);
 			                    logfileStream.flush();
-						//		if(firstClose==false){
-						//			printWriter.println("close");
-						//			firstClose = true;
-						//		}
-								
+
+//			                    if(failNum>lastAck*0.6 && failNum<(2.5*lastAck)){
+//			                    	logfileStream.flush();
+//			                    	logWrite(logfileStream, senderIP, sequenceNumber, lastAck,"Dup receive FIN, discard it. No need");
+//			                    	 logfileStream.flush();
+//			                    }
+			                    printWriter.println("close");
 								break;
 							}else{
 								printWriter.println(lastAck);
@@ -142,15 +147,14 @@ public class Receiver {
 						    logfileStream.flush();
 		                    logWrite(logfileStream, senderIP, sequenceNumber, lastAck,"Reception failed");
 		                    logfileStream.flush();
+		                    failNum+=1;
 						    printWriter.println(lastAck);
 						}
 						receiveBuffer = new byte[buffersize];
 						dp = new DatagramPacket(receiveBuffer, receiveBuffer.length);
 						ds.receive(dp);
 						datalength = dp.getLength();
-					//	if(receiveBuffer[0]==0x00 && firstClose == true){
-					//		break;
-					//	}
+			
 					}
 					ds.close();
 					System.out.println("Delivery completed successfully");
@@ -162,6 +166,8 @@ public class Receiver {
 			e.printStackTrace();
 		} catch(NullPointerException e1){
 			
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
 		}
 	}
