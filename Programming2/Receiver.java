@@ -38,7 +38,6 @@ public class Receiver {
 		DatagramSocket ds = null;
 		DataOutputStream fileOutput = null;
 		DataOutputStream logfileStream = null ;
-		BufferedWriter bufwrite= null;
 		int buffersize =150;
 		
 
