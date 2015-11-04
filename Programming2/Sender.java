@@ -90,6 +90,7 @@ public class Sender {
 				Timer timeout = new Timer();
 				timeout.schedule(new reTransimission(sequenceNumber,remoteIP,logStream,filePath,remotePort,ackNumber,logFile,reTime), reTime);
 				logStream.flush();
+				recLog +=1;
 				if(logFile.trim().equals("stdout")){
 					
 					Timestamp ts = new Timestamp(System.currentTimeMillis());
@@ -141,6 +142,7 @@ public class Sender {
 	
 //				
 				reTranNumber+=1;
+				recLog +=1;
 				if(logFile.trim().equals("stdout")){
 					Timestamp ts = new Timestamp(System.currentTimeMillis());
 					System.out.println(ts+" "+ filePath+ " Seq #: "+sequenceNumber+ " "+remoteIP+ " "+remotePort+ " Ack #: "+ackNumber+ " Retransmitted package  Estimated RTT: "+estimatedRTT);
@@ -169,6 +171,7 @@ public class Sender {
 						ds.send(dp);
 						
 						reTranNumber+=1;
+						recLog +=1;
 						if(logFile.trim().equals("stdout")){
 							Timestamp ts = new Timestamp(System.currentTimeMillis());
 							System.out.println(ts+" "+ filePath+ " Seq #: "+sequenceNumber+ " "+remoteIP+ " "+remotePort+ " Ack #: "+ackNumber+ " Retransmitted package  Estimated RTT: "+estimatedRTT);
@@ -204,6 +207,7 @@ public class Sender {
 	    	int sendTimeInt = (int)sendTime;
 			unReSendList.add(sequenceNumber);
 			sendTimeList.add(sendTimeInt);
+			recLog +=1;
 			if(logFile.trim().equals("stdout")){
 				Timestamp ts = new Timestamp(System.currentTimeMillis());
 				System.out.println(ts+" "+ filePath+ " Seq #: "+sequenceNumber+ " "+remoteIP+ " "+remotePort+ " Ack #: "+ackNumber+ " Send FIN  Estimated RTT: "+estimatedRTT);
@@ -234,6 +238,7 @@ public class Sender {
 				dp = new DatagramPacket(result, result.length, InetAddress.getByName(remoteIP), Tcp_Head.destPort);
 				ds.send(dp);
 				reTranNumber+=1;
+				recLog +=1;
 				if(logFile.trim().equals("stdout")){
 					Timestamp ts = new Timestamp(System.currentTimeMillis());
 					System.out.println(ts+" "+ filePath+ " Seq #: "+sequenceNumber+ " "+remoteIP+ " "+remotePort+ " Ack #: "+ackNumber+ " Retransmitted package  Estimated RTT: "+estimatedRTT);
@@ -262,6 +267,7 @@ public class Sender {
 						dp = new DatagramPacket(result, result.length, InetAddress.getByName(remoteIP), Tcp_Head.destPort);
 						ds.send(dp);
 						reTranNumber+=1;
+						recLog +=1;
 						if(logFile.trim().equals("stdout")){
 							Timestamp ts = new Timestamp(System.currentTimeMillis());
 							System.out.println(ts+" "+ filePath+ " Seq #: "+sequenceNumber+ " "+remoteIP+ " "+remotePort+ " Ack #: "+ackNumber+ " Retransmitted package  Estimated RTT: "+estimatedRTT);
@@ -284,6 +290,7 @@ public class Sender {
 				Thread.sleep(20);
 				systemOut =systemOut;
 			}
+			System.out.println(recLog);
 			int totalbyteSend = (recLog-1)*(buffersize+20);
 			System.out.println("Delivery completed successfully");
 			System.out.println("Total bytes send = "+ totalbyteSend);
@@ -365,6 +372,7 @@ public class Sender {
 				dp = new DatagramPacket(result, result.length, InetAddress.getByName(IP), Tcp_Head.destPort);
 				ds.send(dp);
 //				Thread.sleep(10);
+				recLog +=1;
 				if(logFile.trim().equals("stdout")){
 					Timestamp ts = new Timestamp(System.currentTimeMillis());
 					System.out.println(ts+" "+ sourcefile+ " Seq #: "+Byte2Int(realseq)+ " "+IP+ " "+desPort+ " Ack #: "+ack+ " Retransmitted package  Estimated RTT: "+estimatedRTT);
@@ -394,6 +402,7 @@ public class Sender {
 								break;
 							}
 						}
+						recLog +=1;
 						if(logFile.trim().equals("stdout")){
 							Timestamp ts = new Timestamp(System.currentTimeMillis());
 							System.out.println(ts+" "+ sourcefile+ " Seq #: "+Byte2Int(realseq)+ " "+IP+ " "+desPort+ " Ack #: "+ack+ " Retransmitted package  Estimated RTT: "+estimatedRTT);
@@ -423,7 +432,7 @@ public class Sender {
     	logStream.writeBytes(" "+filePath+" "+remoteIP+ " "+remotePort+ " Sequence # "+String.valueOf(sequenceNumber)+" ACK # "+String.valueOf(ackNumber)
     			+" "+flag+ " "+"Estimated RTT is "+ String.valueOf(RTT));
    // 	logStream.writeBytes(" "+String.valueOf(recLog));
-    	recLog +=1;
+    
     	logStream.writeBytes("\n");
 	}
 	 public static byte[] Int2Byte(int number) {   
