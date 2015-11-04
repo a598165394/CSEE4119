@@ -96,7 +96,7 @@ public class Receiver {
 						int sendlength = Byte2Int2(checksum);
 						byte[] receiveChecksum = calcCheckSum(data);
 						int receivelength = Byte2Int2(receiveChecksum);				
-						int sequenceNumber = Byte2Int(seq);
+						int sequenceNumber = Byte2Int4(seq);
 
 						if(sequenceNumber==expectAck && sendlength==receivelength){
 							expectAck+=1;
@@ -121,11 +121,6 @@ public class Receiver {
 //			                    System.out.println(lastAck);
 			                    logfileStream.flush();
 
-//			                    if(failNum>lastAck*0.6 && failNum<(2.5*lastAck)){
-//			                    	logfileStream.flush();
-//			                    	logWrite(logfileStream, senderIP, sequenceNumber, lastAck,"Dup receive FIN, discard it. No need");
-//			                    	 logfileStream.flush();
-//			                    }
 			                    printWriter.println("close");
 								break;
 							}else{
@@ -157,7 +152,7 @@ public class Receiver {
 			                    }
 			                    fileOutput.flush();
 							}
-						     printWriter.println(lastAck);
+					//	     printWriter.println(lastAck);
 						}else{
 						    logfileStream.flush();
 							if(logFile.trim().equals("stdout")){
@@ -226,7 +221,7 @@ public class Receiver {
 		new Receiver(args[0],args[1],args[2],args[3],args[4]);
 //		new Receiver("file2.txt","41194","127.0.0.1","41195","logfileReceiver.txt");
 	}
-	 public static byte[] Int2Byte(int number) {   
+	 public static byte[] Int2Byte4(int number) {   
 		  byte[] byteArray = new byte[4];   
 		  byteArray[0] = (byte)((number >> 24) & 0xFF);
 		  byteArray[1] = (byte)((number >> 16) & 0xFF);
@@ -236,7 +231,7 @@ public class Receiver {
 	}
 	 
 	 
-	 public  static int Byte2Int(byte[] byteArray) {
+	 public  static int Byte2Int4(byte[] byteArray) {
 		 int number = byteArray[3] & 0xFF;
 		 number |= ((byteArray[2] << 8) & 0xFF00);
 		 number |= ((byteArray[1] << 16) & 0xFF0000);

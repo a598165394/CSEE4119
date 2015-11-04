@@ -66,9 +66,9 @@ public class Sender {
 				
 				ackNumber = Tcp_Head.ackNumber;
 				header = new byte[Tcp_Head.headerLength+sendDateByte.length];
-				seq = Int2Byte(sequenceNumber);
+				seq = Int2Byte4(sequenceNumber);
 				System.arraycopy(seq, 0, header, 4, 4);
-				ack = Int2Byte(ackNumber);
+				ack = Int2Byte4(ackNumber);
 				System.arraycopy(ack, 0, header, 8, 4);
 				checksum =calcCheckSum(sendDateByte);
 				System.arraycopy(checksum, 0, header, 16, 2);
@@ -81,6 +81,14 @@ public class Sender {
 		    	long sendTime = calender.getTimeInMillis();
 		    	int sendTimeInt = (int)sendTime;
 				ds.send(dp);	
+				if(logFile.trim().equals("stdout")){
+					
+					Timestamp ts = new Timestamp(System.currentTimeMillis());
+					System.out.println(ts+" "+ filePath+ " Seq #: "+sequenceNumber+ " "+remoteIP+ " "+remotePort+ " Ack #: "+ackNumber+ " First time Send Estimated RTT: "+estimatedRTT);
+					recLog +=1;
+				}else{
+					logWrite(logStream,filePath,sequenceNumber,remoteIP,remotePort,ackNumber,"Send",estimatedRTT);
+				}
 				if(loop==0){
 					 executorService.execute(new ReceiveAck(remoteIP,Integer.parseInt(ackPort))); 
 				}
@@ -91,14 +99,7 @@ public class Sender {
 				timeout.schedule(new reTransimission(sequenceNumber,remoteIP,logStream,filePath,remotePort,ackNumber,logFile,reTime), reTime);
 				logStream.flush();
 				
-				if(logFile.trim().equals("stdout")){
-					
-					Timestamp ts = new Timestamp(System.currentTimeMillis());
-					System.out.println(ts+" "+ filePath+ " Seq #: "+sequenceNumber+ " "+remoteIP+ " "+remotePort+ " Ack #: "+ackNumber+ " First time Send Estimated RTT: "+estimatedRTT);
-					recLog +=1;
-				}else{
-					logWrite(logStream,filePath,sequenceNumber,remoteIP,remotePort,ackNumber,"Send",estimatedRTT);
-				}
+			
 				
 				logStream.flush();
 		    	sequenceNumber +=1;
@@ -128,7 +129,7 @@ public class Sender {
 				long recentTime;
 				int len =unReSendList.size();
 					for(int i=0;i<len;i++){
-						if(unReSendList.get(i)==Byte2Int(realseq)){
+						if(unReSendList.get(i)==Byte2Int4(realseq)){
 							
 							unReSendList.remove(i);
 							if(i<sendTimeList.size()){
@@ -140,19 +141,18 @@ public class Sender {
 			
 				dp = new DatagramPacket(result, result.length, InetAddress.getByName(remoteIP), Tcp_Head.destPort);
 				ds.send(dp);
-	
-//				
-				reTranNumber+=1;
-				
 				if(logFile.trim().equals("stdout")){
 					Timestamp ts = new Timestamp(System.currentTimeMillis());
 					System.out.println(ts+" "+ filePath+ " Seq #: "+sequenceNumber+ " "+remoteIP+ " "+remotePort+ " Ack #: "+ackNumber+ " Retransmitted package  Estimated RTT: "+estimatedRTT);
 					recLog +=1;
 				}else{
-					logWrite(logStream,filePath,Byte2Int(realseq),remoteIP,remotePort,ackNumber,"retransmitted",estimatedRTT);
+					logWrite(logStream,filePath,Byte2Int4(realseq),remoteIP,remotePort,ackNumber,"retransmitted",estimatedRTT);
 				}
+//				
+				reTranNumber+=1;
+			
 				logStream.flush();
-				while(Byte2Int(realseq)+1!=Tcp_Head.ackNumber){
+				while(Byte2Int4(realseq)+1!=Tcp_Head.ackNumber){
 					Calendar secCalender = Calendar.getInstance();
 					recentTime = secCalender.getTimeInMillis();
 					if(recentTime-startTime>=reTime){
@@ -161,7 +161,7 @@ public class Sender {
 //						System.out.println("Second Retansfer: #  "+ Byte2Int(seseq));
 						len = unReSendList.size();
 						for(int i=0;i<len;i++){
-							if(unReSendList.get(i)==Byte2Int(seseq)){
+							if(unReSendList.get(i)==Byte2Int4(seseq)){
 								unReSendList.remove(i);
 								if(i<sendTimeList.size()){
 									sendTimeList.remove(i);
@@ -171,15 +171,15 @@ public class Sender {
 						}
 						dp = new DatagramPacket(result, result.length, InetAddress.getByName(remoteIP), Tcp_Head.destPort);
 						ds.send(dp);
-						
-						reTranNumber+=1;
 						if(logFile.trim().equals("stdout")){
 							Timestamp ts = new Timestamp(System.currentTimeMillis());
 							System.out.println(ts+" "+ filePath+ " Seq #: "+sequenceNumber+ " "+remoteIP+ " "+remotePort+ " Ack #: "+ackNumber+ " Retransmitted package  Estimated RTT: "+estimatedRTT);
 							recLog +=1;
 						}else{
-							logWrite(logStream,filePath,Byte2Int(seseq),remoteIP,remotePort,ackNumber,"retransmitted",estimatedRTT);
+							logWrite(logStream,filePath,Byte2Int4(seseq),remoteIP,remotePort,ackNumber,"retransmitted",estimatedRTT);
 						}
+						reTranNumber+=1;
+					
 						logStream.flush();
 						Calendar newCalendar = Calendar.getInstance();
 						startTime = newCalendar.getTimeInMillis();
@@ -193,9 +193,9 @@ public class Sender {
 		
 //			0x1 means 1
 			header[13] = (byte) 0x1;
-			seq = Int2Byte(sequenceNumber);
+			seq = Int2Byte4(sequenceNumber);
 			System.arraycopy(seq, 0, header, 4, 4);
-			ack = Int2Byte(ackNumber);
+			ack = Int2Byte4(ackNumber);
 			System.arraycopy(ack, 0, header, 8, 4);
 			checksum =calcCheckSum(sendDateByte);
 			System.arraycopy(checksum, 0, header, 16, 2);
@@ -203,12 +203,7 @@ public class Sender {
 			System.arraycopy(sendDateByte, 0, header, 20, sendDateByte.length);
 			contentBuffer.add(header);
 			dp = new DatagramPacket(header, header.length, InetAddress.getByName(remoteIP), Tcp_Head.destPort);
-			ds.send(dp);	
-			Calendar cal = Calendar.getInstance();
-			long sendTime = cal.getTimeInMillis();
-	    	int sendTimeInt = (int)sendTime;
-			unReSendList.add(sequenceNumber);
-			sendTimeList.add(sendTimeInt);
+			ds.send(dp);
 			if(logFile.trim().equals("stdout")){
 				Timestamp ts = new Timestamp(System.currentTimeMillis());
 				System.out.println(ts+" "+ filePath+ " Seq #: "+sequenceNumber+ " "+remoteIP+ " "+remotePort+ " Ack #: "+ackNumber+ " Send FIN  Estimated RTT: "+estimatedRTT);
@@ -216,6 +211,12 @@ public class Sender {
 			}else{
 				logWrite(logStream,filePath,sequenceNumber,remoteIP,remotePort,ackNumber,"Send FIN",estimatedRTT);
 			}
+			Calendar cal = Calendar.getInstance();
+			long sendTime = cal.getTimeInMillis();
+	    	int sendTimeInt = (int)sendTime;
+			unReSendList.add(sequenceNumber);
+			sendTimeList.add(sendTimeInt);
+		
 			logStream.flush();
 //			Thread.sleep(20);
 			while(sequenceNumber!=ackNumber){
@@ -230,7 +231,7 @@ public class Sender {
 				long recentTime;
 				int len = unReSendList.size();
 				for(int i=0;i<len;i++){
-					if(unReSendList.get(i)==Byte2Int(realseq)){
+					if(unReSendList.get(i)==Byte2Int4(realseq)){
 						unReSendList.remove(i);
 						sendTimeList.remove(i);
 						break;
@@ -239,16 +240,17 @@ public class Sender {
 		//		contentBuffer.add(result);
 				dp = new DatagramPacket(result, result.length, InetAddress.getByName(remoteIP), Tcp_Head.destPort);
 				ds.send(dp);
-				reTranNumber+=1;
 				if(logFile.trim().equals("stdout")){
 					Timestamp ts = new Timestamp(System.currentTimeMillis());
 					System.out.println(ts+" "+ filePath+ " Seq #: "+sequenceNumber+ " "+remoteIP+ " "+remotePort+ " Ack #: "+ackNumber+ " Retransmitted package  Estimated RTT: "+estimatedRTT);
 					recLog +=1;
 				}else{
-					logWrite(logStream,filePath,Byte2Int(realseq),remoteIP,remotePort,ackNumber,"Resend last package",estimatedRTT);
+					logWrite(logStream,filePath,Byte2Int4(realseq),remoteIP,remotePort,ackNumber,"Resend last package",estimatedRTT);
 				}
+				reTranNumber+=1;
+			
 				logStream.flush();
-				while(Byte2Int(realseq)+1!=Tcp_Head.ackNumber){
+				while(Byte2Int4(realseq)+1!=Tcp_Head.ackNumber){
 	//				System.out.println("In this loop or not");
 					Calendar secCalender = Calendar.getInstance();
 					recentTime = secCalender.getTimeInMillis();
@@ -258,7 +260,7 @@ public class Sender {
 	//					System.out.println("Second Retansfer: #  "+ Byte2Int(seseq));
 						len = unReSendList.size();
 						for(int i=0;i<len;i++){
-							if(unReSendList.get(i)==Byte2Int(seseq)){
+							if(unReSendList.get(i)==Byte2Int4(seseq)){
 								unReSendList.remove(i);
 								if(i<sendTimeList.size()){
 									sendTimeList.remove(i);
@@ -268,14 +270,15 @@ public class Sender {
 						}
 						dp = new DatagramPacket(result, result.length, InetAddress.getByName(remoteIP), Tcp_Head.destPort);
 						ds.send(dp);
-						reTranNumber+=1;
 						if(logFile.trim().equals("stdout")){
 							Timestamp ts = new Timestamp(System.currentTimeMillis());
 							System.out.println(ts+" "+ filePath+ " Seq #: "+sequenceNumber+ " "+remoteIP+ " "+remotePort+ " Ack #: "+ackNumber+ " Retransmitted package  Estimated RTT: "+estimatedRTT);
 							recLog +=1;
 						}else{
-							logWrite(logStream,filePath,Byte2Int(seseq),remoteIP,remotePort,ackNumber,"Resend last package",estimatedRTT);
+							logWrite(logStream,filePath,Byte2Int4(seseq),remoteIP,remotePort,ackNumber,"Resend last package",estimatedRTT);
 						}
+						reTranNumber+=1;
+						
 						logStream.flush();
 						Calendar newCalendar = Calendar.getInstance();
 						startTime = newCalendar.getTimeInMillis();
@@ -360,7 +363,7 @@ public class Sender {
 				System.arraycopy(result, 4, realseq, 0, 4);
 				int len = unReSendList.size();
 				for(int K=0;K<len;K++){
-					if( K<unReSendList.size() && unReSendList.get(K)==Byte2Int(realseq)){
+					if( K<unReSendList.size() && unReSendList.get(K)==Byte2Int4(realseq)){
 						unReSendList.remove(K);
 						if(K<sendTimeList.size()){
 							sendTimeList.remove(K);
@@ -376,27 +379,27 @@ public class Sender {
 //				Thread.sleep(10);
 				if(logFile.trim().equals("stdout")){
 					Timestamp ts = new Timestamp(System.currentTimeMillis());
-					System.out.println(ts+" "+ sourcefile+ " Seq #: "+Byte2Int(realseq)+ " "+IP+ " "+desPort+ " Ack #: "+ack+ " Retransmitted package  Estimated RTT: "+estimatedRTT);
+					System.out.println(ts+" "+ sourcefile+ " Seq #: "+Byte2Int4(realseq)+ " "+IP+ " "+desPort+ " Ack #: "+ack+ " Retransmitted package  Estimated RTT: "+estimatedRTT);
 					recLog +=1;
 				}else{
-					logWrite(logwriteStream,sourcefile,Byte2Int(realseq),IP,desPort,ack,"retransmitted",estimatedRTT);
+					logWrite(logwriteStream,sourcefile,Byte2Int4(realseq),IP,desPort,ack,"retransmitted",estimatedRTT);
 				}
 				reTranNumber+=1;
-				while(Byte2Int(realseq)+1!=Tcp_Head.ackNumber){
+				while(Byte2Int4(realseq)+1!=Tcp_Head.ackNumber){
 				
 					Calendar secCalender = Calendar.getInstance();
 					recentTime = secCalender.getTimeInMillis();
 					if(recentTime-startTime>=reTime){
 						byte[] seseq = new byte[4];
 						System.arraycopy(result, 4, seseq, 0, 4);
-						if(Tcp_Head.ackNumber>Byte2Int(seseq)){
+						if(Tcp_Head.ackNumber>Byte2Int4(seseq)){
 							break;
 						}
 						dp = new DatagramPacket(result, result.length, InetAddress.getByName(IP), Tcp_Head.destPort);
 						reTranNumber+=1;
 						len = unReSendList.size();
 						for(int i=0;i<len;i++){
-							if(unReSendList.get(i)==Byte2Int(seseq)){
+							if(unReSendList.get(i)==Byte2Int4(seseq)){
 								unReSendList.remove(i);
 								if(i<sendTimeList.size()){
 									sendTimeList.remove(i);
@@ -404,15 +407,15 @@ public class Sender {
 								break;
 							}
 						}
+						
+						ds.send(dp);
 						if(logFile.trim().equals("stdout")){
 							Timestamp ts = new Timestamp(System.currentTimeMillis());
-							System.out.println(ts+" "+ sourcefile+ " Seq #: "+Byte2Int(realseq)+ " "+IP+ " "+desPort+ " Ack #: "+ack+ " Retransmitted package  Estimated RTT: "+estimatedRTT);
+							System.out.println(ts+" "+ sourcefile+ " Seq #: "+Byte2Int4(realseq)+ " "+IP+ " "+desPort+ " Ack #: "+ack+ " Retransmitted package  Estimated RTT: "+estimatedRTT);
 							recLog +=1;
 						}else{
-							logWrite(logwriteStream,sourcefile,Byte2Int(realseq),IP,desPort,ack,"retransmitted",estimatedRTT);
+							logWrite(logwriteStream,sourcefile,Byte2Int4(realseq),IP,desPort,ack,"retransmitted",estimatedRTT);
 						}
-						ds.send(dp);
-					
 						Calendar newCalendar = Calendar.getInstance();
 						startTime = newCalendar.getTimeInMillis();
 					}
@@ -437,7 +440,7 @@ public class Sender {
     	recLog +=1;
     	logStream.writeBytes("\n");
 	}
-	 public static byte[] Int2Byte(int number) {   
+	public static byte[] Int2Byte4(int number) {   
 		  byte[] byteArray = new byte[4];   
 		  byteArray[0] = (byte)((number >> 24) & 0xFF);
 		  byteArray[1] = (byte)((number >> 16) & 0xFF);
@@ -447,14 +450,14 @@ public class Sender {
 		 }
 	 
 	 
-	 public  static int Byte2Int(byte[] byteArray) {
+	public static int Byte2Int4(byte[] byteArray) {
 		 int number = byteArray[3] & 0xFF;
 		 number |= ((byteArray[2] << 8) & 0xFF00);
 		 number |= ((byteArray[1] << 16) & 0xFF0000);
 		 number |= ((byteArray[0] << 24) & 0xFF000000);
 		 return number;		 
 	}
-	 public static byte[] Int2Byte2(int number) {   
+	public static byte[] Int2Byte2(int number) {   
 		  byte[] byteArray = new byte[2];   
 		  byteArray[0] = (byte)(number & 0x00ff);
 		  byteArray[1] = (byte)((number & 0xff00)>>8);
@@ -462,7 +465,7 @@ public class Sender {
 		 }
 	 
 	 
-	 public  static int Byte2Int2(byte[] byteArray) {
+	public static int Byte2Int2(byte[] byteArray) {
 		 return  ((byteArray[1] << 8) & 0xff00) | (byteArray[0] & 0xff);
 	}
 	 
