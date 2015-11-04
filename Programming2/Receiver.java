@@ -71,9 +71,9 @@ public class Receiver {
 				datalength = dp.getLength();
 				if(datalength!=0 &&firsttime==0){
 					socket = new Socket(senderIP,Integer.valueOf(senderPort));
-					System.out.println(firsttime);
+		//			System.out.println(firsttime);
 					firsttime+=1;
-					System.out.println("Send a socket connection");
+		//			System.out.println("Send a socket connection");
 		            printWriter = new PrintWriter(socket.getOutputStream(), true);         
 				}
 					while(receiveBuffer!=null){
@@ -106,7 +106,7 @@ public class Receiver {
 								printWriter.flush();
 								printWriter.println(lastAck);
 								printWriter.flush();
-								Thread.sleep(1300);
+								Thread.sleep(300);
 								fileOutput.flush();
 								logfileStream.flush();
 								fileOutput.close();
