@@ -456,8 +456,8 @@ public class Sender {
 	 
 
 	public static void main(String[] args) {
-	//	new Sender("file.txt","127.0.0.1","41192","41195","logfileSend.txt","20");
-		new Sender(args[0],args[1],args[2],args[3],args[4],args[5]);
+		new Sender("file.txt","127.0.0.1","41192","41195","logfileSend.txt","20");
+	//	new Sender(args[0],args[1],args[2],args[3],args[4],args[5]);
 	}
 
 }

@@ -39,6 +39,7 @@ public class Receiver {
 		DataOutputStream fileOutput = null;
 		DataOutputStream logfileStream = null ;
 		int buffersize =150;
+		int firsttime=0;
 		
 
 		String line;
@@ -68,12 +69,15 @@ public class Receiver {
 				dp = new DatagramPacket(receiveBuffer, receiveBuffer.length);
 				ds.receive(dp);
 				datalength = dp.getLength();
-				if(datalength!=0){
+				if(datalength!=0 &&firsttime==0){
 					socket = new Socket(senderIP,Integer.valueOf(senderPort));
-//					System.out.println("Send a socket connection");
+					System.out.println(firsttime);
+					firsttime+=1;
+					System.out.println("Send a socket connection");
 		            printWriter = new PrintWriter(socket.getOutputStream(), true);         
 				}
 					while(receiveBuffer!=null){
+						firsttime+=1;
 						loop+=1;
 						arrivedRight =false;
 						connectionExit = true;
@@ -107,8 +111,8 @@ public class Receiver {
 								logfileStream.flush();
 								fileOutput.close();
 			                    logWrite(logfileStream, senderIP, sequenceNumber, lastAck,"File Receive Completed Successful");
-			                    System.out.println("The number of fail: "+failNum);
-			                    System.out.println(lastAck);
+//			                    System.out.println("The number of fail: "+failNum);
+//			                    System.out.println(lastAck);
 			                    logfileStream.flush();
 
 //			                    if(failNum>lastAck*0.6 && failNum<(2.5*lastAck)){
@@ -201,8 +205,8 @@ public class Receiver {
 
 
 	public static void main(String[] args) {
-		new Receiver(args[0],args[1],args[2],args[3],args[4]);
-	//	new Receiver("file2.txt","41194","127.0.0.1","41195","logfileReceiver.txt");
+//		new Receiver(args[0],args[1],args[2],args[3],args[4]);
+		new Receiver("file2.txt","41194","127.0.0.1","41195","logfileReceiver.txt");
 	}
 	 public static byte[] Int2Byte(int number) {   
 		  byte[] byteArray = new byte[4];   
