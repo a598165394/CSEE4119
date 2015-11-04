@@ -71,9 +71,9 @@ public class Receiver {
 				datalength = dp.getLength();
 				if(datalength!=0 &&firsttime==0){
 					socket = new Socket(senderIP,Integer.valueOf(senderPort));
-		//			System.out.println(firsttime);
+//					System.out.println(firsttime);
 					firsttime+=1;
-		//			System.out.println("Send a socket connection");
+//					System.out.println("Send a socket connection");
 		            printWriter = new PrintWriter(socket.getOutputStream(), true);         
 				}
 					while(receiveBuffer!=null){
@@ -205,8 +205,8 @@ public class Receiver {
 
 
 	public static void main(String[] args) {
-//		new Receiver(args[0],args[1],args[2],args[3],args[4]);
-		new Receiver("file2.txt","41194","127.0.0.1","41195","logfileReceiver.txt");
+		new Receiver(args[0],args[1],args[2],args[3],args[4]);
+//		new Receiver("file2.txt","41194","127.0.0.1","41195","logfileReceiver.txt");
 	}
 	 public static byte[] Int2Byte(int number) {   
 		  byte[] byteArray = new byte[4];   

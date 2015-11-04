@@ -1,5 +1,3 @@
-import java.net.DatagramSocket;
-import java.util.HashMap;
 
 
 public class Tcp_Head {
@@ -10,6 +8,5 @@ public class Tcp_Head {
 	public static int headerLength = 20;
 	public static int  MSS = 500;
 	public static int window_Size ;
-//	public static DatagramSocket ds;
-//	public static String data;
+
 }

@@ -17,6 +17,7 @@ public class ReceiveAck implements Runnable {
 	private boolean reNewEST=true;
 	private Socket ackSocket;
 	public static long receiveTime=0;
+
 	private int t = 1;
 	private double EWMA = 0;
 	private double oldEWMA = 0;
@@ -72,14 +73,6 @@ public class ReceiveAck implements Runnable {
 									Sender.estimatedRTT = Sender.sampleRTT;
 								}
 								reNewEST=false;
-//								System.out.println("Sample RTT: "+Sender.sampleRTT);
-//								System.out.println("Estimated RTT: "+Sender.estimatedRTT);
-//								System.out.println("Time out Time: "+ Sender.reTime);
-//						
-//								
-//							
-//								System.out.println("Time take for send and back for Seq "+line+" Time takes for round trip"+String.valueOf(Sender.sampleRTT));
-								//Sender.sampleRTT = (Sender.sampleRTT*(Sender.unReSendList.size())+((int)receiveTime-rightSendTime))/(Sender.unReSendList.size()+1);
 								Sender.estimatedRTT = (int) ((0.875*Sender.estimatedRTT)+(Sender.sampleRTT*0.125));
 								if(t==1){
 									EWMA=(2/(t+1))*Sender.estimatedRTT;
@@ -108,6 +101,7 @@ public class ReceiveAck implements Runnable {
 					
 				}
 				if(exit ==true){
+					Sender.systemOut =true;
 					break;
 				}
 				

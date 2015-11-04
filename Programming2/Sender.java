@@ -30,6 +30,7 @@ public class Sender {
     public static Queue<byte[]> contentBuffer = new LinkedList<byte[]>();
     public static int estimatedRTT =200;
     public static int sampleRTT=0;
+	public static boolean systemOut =false;
 
     public static ArrayList<Integer> sendTimeList = new ArrayList<Integer>();
     public static ArrayList<Integer> reSendList = new ArrayList<Integer>();
@@ -283,6 +284,10 @@ public class Sender {
 			}
 			ds.close();
 			logStream.close();
+			while(systemOut==false){
+				Thread.sleep(20);
+				systemOut =systemOut;
+			}
 			int totalbyteSend = (recLog-1)*(buffersize+20);
 			System.out.println("Delivery completed successfully");
 			System.out.println("Total bytes send = "+ totalbyteSend);
@@ -456,8 +461,8 @@ public class Sender {
 	 
 
 	public static void main(String[] args) {
-		new Sender("file.txt","127.0.0.1","41192","41195","logfileSend.txt","20");
-	//	new Sender(args[0],args[1],args[2],args[3],args[4],args[5]);
+	//	new Sender("file.txt","127.0.0.1","41192","41195","logfileSend.txt","20");
+		new Sender(args[0],args[1],args[2],args[3],args[4],args[5]);
 	}
 
 }
