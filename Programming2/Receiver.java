@@ -115,7 +115,7 @@ public class Receiver {
 									System.out.println(ts+" "+ senderIP+  " "+ InetAddress.getLocalHost().toString()+ " Sequence # "+String.valueOf(sequenceNumber)+" ACK #: "+String.valueOf(expectAck)
 											+" FIN Received. File Receive Completed Successful"+ "\n");
 								}else{
-									logWrite(logfileStream, senderIP, sequenceNumber, lastAck,"File Receive Completed Successful");
+									logWrite(logfileStream, senderIP, sequenceNumber, lastAck,"FIN Received! File Receive Completed Successful. Receiver and Sender will close");
 								}
 //			                    System.out.println("The number of fail: "+failNum);
 //			                    System.out.println(lastAck);
