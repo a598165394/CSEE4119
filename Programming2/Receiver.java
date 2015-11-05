@@ -50,12 +50,24 @@ public class Receiver {
 			logfileStream= new DataOutputStream(new BufferedOutputStream(new FileOutputStream(logFile)));
 			fileOutput = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(fileName)));
 		} catch (NumberFormatException e2) {
+			System.out.println("unable to create right file");
+			System.out.println("Please re open the Receiver and sender!");
+			System.exit(0);
 			e2.printStackTrace();
 		} catch (SocketException e2) {
+			System.out.println("unable to create right file");
+			System.out.println("Please re open the Receiver and sender!");
+			System.exit(0);
 			e2.printStackTrace();
 		} catch (FileNotFoundException e) {
+			System.out.println("unable to create right file");
+			System.out.println("Please re open the Receiver and sender!");
+			System.exit(0);
 			e.printStackTrace();
 		} catch (IOException e) {
+			System.out.println("unable to create right file");
+			System.out.println("Please re open the Receiver and sender!");
+			System.exit(0);
 			e.printStackTrace();
 		}
 	
@@ -122,6 +134,7 @@ public class Receiver {
 			                    logfileStream.flush();
 
 			                    printWriter.println("close");
+								executorService.shutdownNow(); 
 								break;
 							}else{
 								printWriter.println(lastAck);
@@ -177,12 +190,23 @@ public class Receiver {
 					socket.close();
 					System.exit(0);		
 		} catch (FileNotFoundException e) {
+			System.out.println("unable to create right file");
+			System.out.println("Please re open the Receiver and sender!");
+			System.exit(0);
 			e.printStackTrace();
 		} catch (IOException e) {
+			System.out.println("unable to create right file");
+			System.out.println("Please re open the Receiver and sender!");
+			System.exit(0);
 			e.printStackTrace();
 		} catch(NullPointerException e1){
-			
+			System.out.println("unable to create right file");
+			System.out.println("Please re open the Receiver and sender!");
+			System.exit(0);
 		} catch (InterruptedException e) {
+			System.out.println("unable to create right file");
+			System.out.println("Please re open the Receiver and sender!");
+			System.exit(0);
 			e.printStackTrace();
 		}
 		}
@@ -199,6 +223,9 @@ public class Receiver {
 	       
 	        logfileStream.flush();
 		} catch (IOException e) {
+			System.out.println("unable to create right file");
+			System.out.println("Please re open the Receiver and sender!");
+			System.exit(0);
 			e.printStackTrace();
 		}
            

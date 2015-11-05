@@ -295,6 +295,7 @@ public class Sender {
 				Thread.sleep(20);
 				systemOut =systemOut;
 			}
+			executorService.shutdownNow();
 		//	System.out.println(recLog);
 			int totalbyteSend = (recLog-1)*(buffersize+20);
 			System.out.println("Delivery completed successfully");
