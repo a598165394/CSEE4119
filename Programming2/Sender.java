@@ -84,10 +84,10 @@ public class Sender {
 				if(logFile.trim().equals("stdout")){
 					
 					Timestamp ts = new Timestamp(System.currentTimeMillis());
-					System.out.println(ts+" "+ filePath+ " Seq #: "+sequenceNumber+ " "+remoteIP+ " "+remotePort+ " Ack #: "+ackNumber+ " First time Send Estimated RTT: "+estimatedRTT);
+					System.out.println(ts+" "+ filePath+ " Seq #: "+sequenceNumber+ " "+remoteIP+ " "+remotePort+ " Ack #: "+ackNumber+ " FLAG 000010000 "+estimatedRTT);
 					recLog +=1;
 				}else{
-					logWrite(logStream,filePath,sequenceNumber,remoteIP,remotePort,ackNumber,"Send",estimatedRTT);
+					logWrite(logStream,filePath,sequenceNumber,remoteIP,remotePort,ackNumber,"FLAG 000010000",estimatedRTT);
 				}
 				if(loop==0){
 					 executorService.execute(new ReceiveAck(remoteIP,Integer.parseInt(ackPort))); 
@@ -143,10 +143,10 @@ public class Sender {
 				ds.send(dp);
 				if(logFile.trim().equals("stdout")){
 					Timestamp ts = new Timestamp(System.currentTimeMillis());
-					System.out.println(ts+" "+ filePath+ " Seq #: "+sequenceNumber+ " "+remoteIP+ " "+remotePort+ " Ack #: "+ackNumber+ " Retransmitted package  Estimated RTT: "+estimatedRTT);
+					System.out.println(ts+" "+ filePath+ " Seq #: "+sequenceNumber+ " "+remoteIP+ " "+remotePort+ " Ack #: "+ackNumber+ " FLAG 000010000  Estimated RTT: "+estimatedRTT);
 					recLog +=1;
 				}else{
-					logWrite(logStream,filePath,Byte2Int4(realseq),remoteIP,remotePort,ackNumber,"retransmitted",estimatedRTT);
+					logWrite(logStream,filePath,Byte2Int4(realseq),remoteIP,remotePort,ackNumber,"FLAG 000010000",estimatedRTT);
 				}
 //				
 				reTranNumber+=1;
@@ -173,10 +173,10 @@ public class Sender {
 						ds.send(dp);
 						if(logFile.trim().equals("stdout")){
 							Timestamp ts = new Timestamp(System.currentTimeMillis());
-							System.out.println(ts+" "+ filePath+ " Seq #: "+sequenceNumber+ " "+remoteIP+ " "+remotePort+ " Ack #: "+ackNumber+ " Retransmitted package  Estimated RTT: "+estimatedRTT);
+							System.out.println(ts+" "+ filePath+ " Seq #: "+sequenceNumber+ " "+remoteIP+ " "+remotePort+ " Ack #: "+ackNumber+ " FLAG 000010000  Estimated RTT: "+estimatedRTT);
 							recLog +=1;
 						}else{
-							logWrite(logStream,filePath,Byte2Int4(seseq),remoteIP,remotePort,ackNumber,"retransmitted",estimatedRTT);
+							logWrite(logStream,filePath,Byte2Int4(seseq),remoteIP,remotePort,ackNumber,"FLAG 000010000",estimatedRTT);
 						}
 						reTranNumber+=1;
 					
@@ -206,10 +206,10 @@ public class Sender {
 			ds.send(dp);
 			if(logFile.trim().equals("stdout")){
 				Timestamp ts = new Timestamp(System.currentTimeMillis());
-				System.out.println(ts+" "+ filePath+ " Seq #: "+sequenceNumber+ " "+remoteIP+ " "+remotePort+ " Ack #: "+ackNumber+ " Send FIN  Estimated RTT: "+estimatedRTT);
+				System.out.println(ts+" "+ filePath+ " Seq #: "+sequenceNumber+ " "+remoteIP+ " "+remotePort+ " Ack #: "+ackNumber+ " FLAG 000010001  Estimated RTT: "+estimatedRTT);
 				recLog +=1;
 			}else{
-				logWrite(logStream,filePath,sequenceNumber,remoteIP,remotePort,ackNumber,"Send FIN",estimatedRTT);
+				logWrite(logStream,filePath,sequenceNumber,remoteIP,remotePort,ackNumber,"FLAG 000010001",estimatedRTT);
 			}
 			Calendar cal = Calendar.getInstance();
 			long sendTime = cal.getTimeInMillis();
@@ -242,10 +242,10 @@ public class Sender {
 				ds.send(dp);
 				if(logFile.trim().equals("stdout")){
 					Timestamp ts = new Timestamp(System.currentTimeMillis());
-					System.out.println(ts+" "+ filePath+ " Seq #: "+sequenceNumber+ " "+remoteIP+ " "+remotePort+ " Ack #: "+ackNumber+ " Retransmitted package  Estimated RTT: "+estimatedRTT);
+					System.out.println(ts+" "+ filePath+ " Seq #: "+sequenceNumber+ " "+remoteIP+ " "+remotePort+ " Ack #: "+ackNumber+ " FLAG 000010001  Estimated RTT: "+estimatedRTT);
 					recLog +=1;
 				}else{
-					logWrite(logStream,filePath,Byte2Int4(realseq),remoteIP,remotePort,ackNumber,"Resend last package",estimatedRTT);
+					logWrite(logStream,filePath,Byte2Int4(realseq),remoteIP,remotePort,ackNumber,"FLAG 000010001",estimatedRTT);
 				}
 				reTranNumber+=1;
 			
@@ -272,10 +272,10 @@ public class Sender {
 						ds.send(dp);
 						if(logFile.trim().equals("stdout")){
 							Timestamp ts = new Timestamp(System.currentTimeMillis());
-							System.out.println(ts+" "+ filePath+ " Seq #: "+sequenceNumber+ " "+remoteIP+ " "+remotePort+ " Ack #: "+ackNumber+ " Retransmitted package  Estimated RTT: "+estimatedRTT);
+							System.out.println(ts+" "+ filePath+ " Seq #: "+sequenceNumber+ " "+remoteIP+ " "+remotePort+ " Ack #: "+ackNumber+ " FLAG 000010001  Estimated RTT: "+estimatedRTT);
 							recLog +=1;
 						}else{
-							logWrite(logStream,filePath,Byte2Int4(seseq),remoteIP,remotePort,ackNumber,"Resend last package",estimatedRTT);
+							logWrite(logStream,filePath,Byte2Int4(seseq),remoteIP,remotePort,ackNumber,"FLAG 000010001",estimatedRTT);
 						}
 						reTranNumber+=1;
 						

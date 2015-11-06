@@ -125,9 +125,9 @@ public class Receiver {
 								if(logFile.trim().equals("stdout")){
 									Timestamp ts = new Timestamp(System.currentTimeMillis());
 									System.out.println(ts+" "+ senderIP+  " "+ InetAddress.getLocalHost().toString()+ " Sequence # "+String.valueOf(sequenceNumber)+" ACK #: "+String.valueOf(expectAck)
-											+" FIN Received. File Receive Completed Successful"+ "\n");
+											+" FLAG 000010001"+ "\n");
 								}else{
-									logWrite(logfileStream, senderIP, sequenceNumber, lastAck,"FIN Received! File Receive Completed Successful. Receiver and Sender will close");
+									logWrite(logfileStream, senderIP, sequenceNumber, lastAck," FLAG 000010001");
 								}
 //			                    System.out.println("The number of fail: "+failNum);
 //			                    System.out.println(lastAck);
@@ -141,9 +141,9 @@ public class Receiver {
 								if(logFile.trim().equals("stdout")){
 									Timestamp ts = new Timestamp(System.currentTimeMillis());
 									System.out.println(ts+" "+ senderIP+  " "+ InetAddress.getLocalHost().toString()+ " Sequence # "+String.valueOf(sequenceNumber)+" ACK #: "+String.valueOf(expectAck)
-											+" Pak Receive Successful"+ "\n");
+											+" FLAG 000010000"+ "\n");
 								}else{
-									logWrite(logfileStream, senderIP, sequenceNumber, lastAck,"Reception Successful");
+									logWrite(logfileStream, senderIP, sequenceNumber, lastAck," FLAG 000010000");
 								}
 			                    logfileStream.flush();
 			                    int lenbuff = 0;
@@ -171,9 +171,9 @@ public class Receiver {
 							if(logFile.trim().equals("stdout")){
 								Timestamp ts = new Timestamp(System.currentTimeMillis());
 								System.out.println(ts+" "+ senderIP+  " "+ InetAddress.getLocalHost().toString()+ " Sequence # "+String.valueOf(sequenceNumber)+" ACK #: "+String.valueOf(expectAck)
-										+" Reception failed"+ "\n");
+										+"FLAG 000010000"+ "\n");
 							}else{
-								logWrite(logfileStream, senderIP, sequenceNumber, lastAck,"Reception failed");
+								logWrite(logfileStream, senderIP, sequenceNumber, lastAck,"FLAG 000010000");
 							}
 		                    logfileStream.flush();
 		                    failNum+=1;
