@@ -9,12 +9,12 @@
 		Proxy:
 			./newudpl -ibeijing -obeijing -v -L9 -B90 -O4 -d1 
 		Receiver:
-			java Receiver file2.txt 41194 beijing 41195 
+			java Receiver file2.txt 41194 beijing 41195 logfileReceiver.txt 
 		Sender:
-			java Sender file.txt beijing 41192 41195 logfileSend.txt 4
+			java Sender file.txt beijing 41192 41195 logfileSend.txt 5
 	   4. The default sender udp port for Sender is 41191, which is used to match the source port in Proxy(-i), because the way I invoke the Proxy is ./newudpl -i128.59.15.30 -o128.59.15.30 -v -L9 -B90 -O4 -d1 
-	   5. Then you need revoke Receiver first, the way to invoke server will be java Receiver file2.txt 41194 128.59.15.30 41195 logfileReceiver.txt
-	   6. Then you need revoke Sender. The way to invoke sender will be java Sender file.txt 128.59.15.30 41192 41195 logfileSend.txt 5
-       7. If you want to change the Sender sent udp port, you can easily go the Sender.java in the line #28, the variable name is senderport. The line #30 is looks like " private int sendport = 41191; ". You can change this number to any number you want only need to match the default in the Proxy.
+	   5. Then you need revoke Receiver first, the way to invoke receiver  will be java Receiver file2.txt 41194 128.59.15.30 41195 logfileReceiver.txt   (This is using IP way rather than using address name, both are works)
+	   6. Then you need revoke Sender. The way to invoke sender will be java Sender file.txt 128.59.15.30 41192 41195 logfileSend.txt 5  (This is using IP way rather than using address name, both are works)
+       7. If you want to change the Sender sent udp port, you can easily go the Sender.java in the line #28, the variable name is senderport. The line #28 is looks like " private int sendport = 41191; ". You can change this number to any number you want only need to match the default in the Proxy.
 	   8. When set the delay as the big number , the programming will run a long time, sorry for the long time.
   
