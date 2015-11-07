@@ -124,7 +124,7 @@ public class Receiver {
 								fileOutput.close();
 								if(logFile.trim().equals("stdout")){
 									Timestamp ts = new Timestamp(System.currentTimeMillis());
-									System.out.println(ts+" "+ senderIP+  " "+ InetAddress.getLocalHost().toString()+ " Sequence # "+String.valueOf(sequenceNumber)+" ACK #: "+String.valueOf(expectAck)
+									System.out.println(ts+" "+ InetAddress.getLocalHost().toString()+" "+senderIP + " Sequence # "+String.valueOf(sequenceNumber)+" ACK #: "+String.valueOf(expectAck)
 											+" FLAG 000010001"+ "\n");
 								}else{
 									logWrite(logfileStream, senderIP, sequenceNumber, lastAck," FLAG 000010001");
@@ -140,7 +140,7 @@ public class Receiver {
 								printWriter.println(lastAck);
 								if(logFile.trim().equals("stdout")){
 									Timestamp ts = new Timestamp(System.currentTimeMillis());
-									System.out.println(ts+" "+ senderIP+  " "+ InetAddress.getLocalHost().toString()+ " Sequence # "+String.valueOf(sequenceNumber)+" ACK #: "+String.valueOf(expectAck)
+									System.out.println(ts+" "+  InetAddress.getLocalHost().toString()+" "+senderIP + "  Sequence # "+String.valueOf(sequenceNumber)+" ACK #: "+String.valueOf(expectAck)
 											+" FLAG 000010000"+ "\n");
 								}else{
 									logWrite(logfileStream, senderIP, sequenceNumber, lastAck," FLAG 000010000");
@@ -170,7 +170,7 @@ public class Receiver {
 						    logfileStream.flush();
 							if(logFile.trim().equals("stdout")){
 								Timestamp ts = new Timestamp(System.currentTimeMillis());
-								System.out.println(ts+" "+ senderIP+  " "+ InetAddress.getLocalHost().toString()+ " Sequence # "+String.valueOf(sequenceNumber)+" ACK #: "+String.valueOf(expectAck)
+								System.out.println(ts+" "+ InetAddress.getLocalHost().toString()+" "+ senderIP +"  Sequence # "+String.valueOf(sequenceNumber)+" ACK #: "+String.valueOf(expectAck)
 										+"FLAG 000010000"+ "\n");
 							}else{
 								logWrite(logfileStream, senderIP, sequenceNumber, lastAck,"FLAG 000010000");
@@ -217,7 +217,7 @@ public class Receiver {
         	   logfileStream.flush();
 			logfileStream.write(ts.toString().getBytes(),0,ts.toString().getBytes().length);
 			logfileStream.flush();
-	        logfileStream.writeBytes( " "+senderIP + " "+InetAddress.getLocalHost().toString()+" Sequence # "+String.valueOf(sequenceNumber)
+	        logfileStream.writeBytes( " "+InetAddress.getLocalHost().toString()+" " + senderIP+"  Sequence # "+String.valueOf(sequenceNumber)
 	        		+" ACK # " + String.valueOf(expectAck)+" "+flag+" "+ "\n");
 	        recLog+=1;
 	       

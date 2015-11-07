@@ -84,7 +84,7 @@ public class Sender {
 				if(logFile.trim().equals("stdout")){
 					
 					Timestamp ts = new Timestamp(System.currentTimeMillis());
-					System.out.println(ts+" "+ filePath+ " Seq #: "+sequenceNumber+ " "+remoteIP+ " "+remotePort+ " Ack #: "+ackNumber+ " FLAG 000010000 "+estimatedRTT);
+					System.out.println(ts+" "+ filePath +" "+remoteIP+ "/"+remotePort+" Seq #: "+sequenceNumber + "Ack #: "+ackNumber+ " FLAG 000010000  Estimated RTT "+estimatedRTT);
 					recLog +=1;
 				}else{
 					logWrite(logStream,filePath,sequenceNumber,remoteIP,remotePort,ackNumber,"FLAG 000010000",estimatedRTT);
@@ -143,7 +143,7 @@ public class Sender {
 				ds.send(dp);
 				if(logFile.trim().equals("stdout")){
 					Timestamp ts = new Timestamp(System.currentTimeMillis());
-					System.out.println(ts+" "+ filePath+ " Seq #: "+sequenceNumber+ " "+remoteIP+ " "+remotePort+ " Ack #: "+ackNumber+ " FLAG 000010000  Estimated RTT: "+estimatedRTT);
+					System.out.println(ts+" "+ filePath+  " "+remoteIP+ "/"+remotePort+" Seq #: "+sequenceNumber+ " Ack #: "+ackNumber+ " FLAG 000010000  Estimated RTT: "+estimatedRTT);
 					recLog +=1;
 				}else{
 					logWrite(logStream,filePath,Byte2Int4(realseq),remoteIP,remotePort,ackNumber,"FLAG 000010000",estimatedRTT);
@@ -173,7 +173,7 @@ public class Sender {
 						ds.send(dp);
 						if(logFile.trim().equals("stdout")){
 							Timestamp ts = new Timestamp(System.currentTimeMillis());
-							System.out.println(ts+" "+ filePath+ " Seq #: "+sequenceNumber+ " "+remoteIP+ " "+remotePort+ " Ack #: "+ackNumber+ " FLAG 000010000  Estimated RTT: "+estimatedRTT);
+							System.out.println(ts+" "+ filePath+ " "+remoteIP+ "/"+remotePort+" Seq #: "+sequenceNumber+ " Ack #: "+ackNumber+ " FLAG 000010000  Estimated RTT:  "+estimatedRTT);
 							recLog +=1;
 						}else{
 							logWrite(logStream,filePath,Byte2Int4(seseq),remoteIP,remotePort,ackNumber,"FLAG 000010000",estimatedRTT);
@@ -206,7 +206,7 @@ public class Sender {
 			ds.send(dp);
 			if(logFile.trim().equals("stdout")){
 				Timestamp ts = new Timestamp(System.currentTimeMillis());
-				System.out.println(ts+" "+ filePath+ " Seq #: "+sequenceNumber+ " "+remoteIP+ " "+remotePort+ " Ack #: "+ackNumber+ " FLAG 000010001  Estimated RTT: "+estimatedRTT);
+				System.out.println(ts+" "+ filePath+ " "+remoteIP+ "/"+remotePort+ " Seq #: "+sequenceNumber+" Ack #: "+ackNumber+ " FLAG 000010001  Estimated RTT: "+estimatedRTT);
 				recLog +=1;
 			}else{
 				logWrite(logStream,filePath,sequenceNumber,remoteIP,remotePort,ackNumber,"FLAG 000010001",estimatedRTT);
@@ -242,7 +242,7 @@ public class Sender {
 				ds.send(dp);
 				if(logFile.trim().equals("stdout")){
 					Timestamp ts = new Timestamp(System.currentTimeMillis());
-					System.out.println(ts+" "+ filePath+ " Seq #: "+sequenceNumber+ " "+remoteIP+ " "+remotePort+ " Ack #: "+ackNumber+ " FLAG 000010001  Estimated RTT: "+estimatedRTT);
+					System.out.println(ts+" "+ filePath+ " "+remoteIP+ " "+remotePort+" Seq #: "+sequenceNumber+ " Ack #: "+ackNumber+ " FLAG 000010001  Estimated RTT: "+estimatedRTT);
 					recLog +=1;
 				}else{
 					logWrite(logStream,filePath,Byte2Int4(realseq),remoteIP,remotePort,ackNumber,"FLAG 000010001",estimatedRTT);
@@ -272,7 +272,7 @@ public class Sender {
 						ds.send(dp);
 						if(logFile.trim().equals("stdout")){
 							Timestamp ts = new Timestamp(System.currentTimeMillis());
-							System.out.println(ts+" "+ filePath+ " Seq #: "+sequenceNumber+ " "+remoteIP+ " "+remotePort+ " Ack #: "+ackNumber+ " FLAG 000010001  Estimated RTT: "+estimatedRTT);
+							System.out.println(ts+" "+ filePath+  " "+remoteIP+ " "+remotePort+ " Seq #: "+sequenceNumber+" Ack #: "+ackNumber+ " FLAG 000010001  Estimated RTT: "+estimatedRTT);
 							recLog +=1;
 						}else{
 							logWrite(logStream,filePath,Byte2Int4(seseq),remoteIP,remotePort,ackNumber,"FLAG 000010001",estimatedRTT);
@@ -306,7 +306,7 @@ public class Sender {
 	    	
 		} catch (FileNotFoundException e) {
 			System.out.println("File not exits");
-			System.out.println("Please re open the Sender!");
+			System.out.println("Please re open the Sender and Receiver!");
 			System.exit(0);
 			e.printStackTrace();
 		} catch(IOException e1){
@@ -380,10 +380,10 @@ public class Sender {
 //				Thread.sleep(10);
 				if(logFile.trim().equals("stdout")){
 					Timestamp ts = new Timestamp(System.currentTimeMillis());
-					System.out.println(ts+" "+ sourcefile+ " Seq #: "+Byte2Int4(realseq)+ " "+IP+ " "+desPort+ " Ack #: "+ack+ " Retransmitted package  Estimated RTT: "+estimatedRTT);
+					System.out.println(ts+" "+ sourcefile+ " "+IP+ "/"+desPort+ " Seq #: "+Byte2Int4(realseq)+ " Ack #: "+ack+ " FLAG 000010000  Estimated RTT: "+estimatedRTT);
 					recLog +=1;
 				}else{
-					logWrite(logwriteStream,sourcefile,Byte2Int4(realseq),IP,desPort,ack,"retransmitted",estimatedRTT);
+					logWrite(logwriteStream,sourcefile,Byte2Int4(realseq),IP,desPort,ack,"FLAG 000010000",estimatedRTT);
 				}
 				reTranNumber+=1;
 				while(Byte2Int4(realseq)+1!=Tcp_Head.ackNumber){
@@ -412,10 +412,10 @@ public class Sender {
 						ds.send(dp);
 						if(logFile.trim().equals("stdout")){
 							Timestamp ts = new Timestamp(System.currentTimeMillis());
-							System.out.println(ts+" "+ sourcefile+ " Seq #: "+Byte2Int4(realseq)+ " "+IP+ " "+desPort+ " Ack #: "+ack+ " Retransmitted package  Estimated RTT: "+estimatedRTT);
+							System.out.println(ts+" "+ sourcefile+  " "+IP+ "/"+desPort+ " Seq #: "+Byte2Int4(realseq)+" Ack #: "+ack+ " FLAG 000010000  Estimated RTT: "+estimatedRTT);
 							recLog +=1;
 						}else{
-							logWrite(logwriteStream,sourcefile,Byte2Int4(realseq),IP,desPort,ack,"retransmitted",estimatedRTT);
+							logWrite(logwriteStream,sourcefile,Byte2Int4(realseq),IP,desPort,ack,"FLAG 000010000",estimatedRTT);
 						}
 						Calendar newCalendar = Calendar.getInstance();
 						startTime = newCalendar.getTimeInMillis();
@@ -435,7 +435,7 @@ public class Sender {
 	private void logWrite(DataOutputStream logStream, String filePath, int sequenceNumber, String remoteIP, String remotePort, int ackNumber, String flag, int RTT) throws IOException {
 		Timestamp ts = new Timestamp(System.currentTimeMillis());
     	logStream.write(ts.toString().getBytes(),0,ts.toString().getBytes().length);
-    	logStream.writeBytes(" "+filePath+" "+remoteIP+ " "+remotePort+ " Sequence # "+String.valueOf(sequenceNumber)+" ACK # "+String.valueOf(ackNumber)
+    	logStream.writeBytes(" "+filePath+" "+remoteIP+ "/"+remotePort+ " Sequence # "+String.valueOf(sequenceNumber)+" ACK # "+String.valueOf(ackNumber)
     			+" "+flag+ " "+"Estimated RTT is "+ String.valueOf(RTT));
    // 	logStream.writeBytes(" "+String.valueOf(recLog));
     	recLog +=1;
