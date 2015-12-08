@@ -120,11 +120,11 @@ public class ReceiverThread implements Runnable {
 	}
 	private void doBford(String startPos) {
 		Vertex start = 	bfclient.graph.vertices.get(startPos);
-//		for(Vertex v:bfclient.graph.vertices.values()){
-//	//		v.cost = Integer.MAX_VALUE;
-//			v.parent =null;
-//		}
-//		start.cost =0.0;
+		for(Vertex v:bfclient.graph.vertices.values()){
+	//		v.cost = Integer.MAX_VALUE;
+			v.parent =null;
+		}
+		start.cost =0.0;
 		// Relax
 		for(int i=1;i<=bfclient.graph.vertices.size()-1;i++){
 			for(Vertex vv:bfclient.graph.vertices.values()){

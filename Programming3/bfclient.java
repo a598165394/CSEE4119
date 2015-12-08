@@ -61,11 +61,11 @@ public class bfclient {
 	}
 	private void doBford(String startPos) {
 		Vertex start = 	bfclient.graph.vertices.get(startPos);
-//		for(Vertex v:bfclient.graph.vertices.values()){
-//	//		v.cost = Integer.MAX_VALUE;
-//			v.parent =null;
-//		}
-//		start.cost =0;
+		for(Vertex v:bfclient.graph.vertices.values()){
+	//		v.cost = Integer.MAX_VALUE;
+			v.parent =null;
+		}
+		start.cost =0;
 		// Relax
 		for(int i=1;i<=bfclient.graph.vertices.size()-1;i++){
 			for(Vertex vv:bfclient.graph.vertices.values()){
@@ -204,7 +204,7 @@ public class bfclient {
 	public static void main(String[] args) {
 		new bfclient(args);
 	//	String[] res={"4118","5"};
-	//	String[] res={"4115", "3" ,"160.39.135.197","4116", "5.0" ,"160.39.135.197" ,"4118" ,"30.0"};
+//		String[] res={"4115", "3" ,"127.0.0.1","4116", "5.0" ,"127.0.0.1" ,"4118" ,"30.0"};
 	//	new bfclient(res);
 	}
 	
