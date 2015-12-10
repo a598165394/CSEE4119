@@ -49,50 +49,50 @@ public class bfclient {
 			sb.append("/"+keyword[i]+":"+keyword[i+1]+","+keyword[i+2]+","+keyword[0]+":"+keyword[1]+";");
 			String name = keyword[i]+":"+keyword[i+1];
 			graph.addVertex(new Vertex(name, Double.parseDouble(keyword[i+2]),keyword[i],Integer.parseInt(keyword[i+1])));
-			graph.vertices.get(name).parent = graph.vertices.get(startPos);
+			graph.vertices.get(name).backpointer = graph.vertices.get(startPos);
+	//		System.out.println(graph.vertices.get(name).parent);
 			graph.addEdge(startPos, name, Double.parseDouble(keyword[i+2]));
 		}
 	
 		doBford(startPos);
 //		System.out.println("The first:"+startPos);
-		sb = tableUpdate(startPos);
+		sb = tableUpdate(graph,startPos);
 		executorService.execute(new ReceiverThread(listenPort,timeout,startPos,graph));
-		RecvSendLoop(sb,listenPort,timeout,startPos);
+		
+		RecvSendLoop(graph,sb,listenPort,timeout,startPos);
 	}
 	private void doBford(String startPos) {
 		Vertex start = 	bfclient.graph.vertices.get(startPos);
 		for(Vertex v:bfclient.graph.vertices.values()){
 	//		v.cost = Integer.MAX_VALUE;
-			v.parent =null;
+	//		v.parent =null;
 		}
 		start.cost =0;
 		// Relax
 		for(int i=1;i<=bfclient.graph.vertices.size()-1;i++){
 			for(Vertex vv:bfclient.graph.vertices.values()){
 				for(Edge edge:vv.getEdges()){
-					if(edge.visited==i){
-						edge.visited+=1;
-						if(edge.visited==bfclient.graph.vertices.size()-1) edge.visited=1;
+			//		if(edge.visited==i){
+				//		edge.visited+=1;
+			//			if(edge.visited==bfclient.graph.vertices.size()-1) edge.visited=1;
 						Vertex source = edge.startVertex;
 						Vertex target = edge.endVertex;
 						if(target.cost> source.cost+edge.cost){
 							target.cost = source.cost+edge.cost;
-							target.parent = source;
+							target.backpointer = source;
 						}
-					}
+			//		}
 				}
 			}
 			for(Vertex vv:bfclient.graph.vertices.values()){
 				for(Edge edge:vv.getEdges()){
-					if(edge.visited==1){
-						edge.visited+=1;
 						Vertex source = edge.startVertex;
 						Vertex target = edge.endVertex;
 						if(target.cost> source.cost+edge.cost){
 							System.out.println("There is negative weight cycle exists");
 
 						}
-					}
+		//			}
 				}
 			}
 			
@@ -104,15 +104,18 @@ public class bfclient {
 	private void SendDataToNeigh(String startPos) {
 		Vertex self =bfclient.graph.vertices.get(startPos);
 		byte[] sendBuffer = new byte[4096];
-		
+		String temp = "";
 		StringBuilder sb =new StringBuilder();
 		StringBuilder route=new StringBuilder();
 		sb.append("ROUTE UPDATE");
 		for(Vertex v:bfclient.graph.vertices.values()){
-			Vertex vp = v.parent;
+			Vertex vp = v.backpointer;
 			while(vp!=null){
+		//		System.out.println(vp.name);
+				if(temp.equals(vp.name)) break;
 				route.append(vp.name+";");
-				vp = vp.parent;
+				temp = vp.name;
+				vp = vp.backpointer;
 			}
 			sb.append("/"+v.name+","+v.cost+","+route.toString());
 		}
@@ -120,9 +123,7 @@ public class bfclient {
 		for(Edge w:self.getEdges()){
 			
 			try {
-//				System.out.println("Send to:"+w.endVertex);
-//				System.out.println("Real Send to IP:"+w.endVertex.ip);
-//				System.out.println("Real Send to Port:"+w.endVertex.port);
+				System.out.println("Firstly Send to:"+w.endVertex);
 				DatagramSocket dsTemp = new DatagramSocket();	
 				
 				DatagramPacket dpTemp = new DatagramPacket(sendBuffer,sendBuffer.length,InetAddress.getByName(w.endVertex.ip),w.endVertex.port);
@@ -140,23 +141,27 @@ public class bfclient {
 
 
 
-	private StringBuilder tableUpdate(String startPos) {
+
+	private StringBuilder tableUpdate(Graph graph, String startPos) {
 		StringBuilder temp =new StringBuilder();
-		
+		String lastParent = "";
 		for(Vertex v:graph.vertices.values()){
 			
 			StringBuilder routetemp=new StringBuilder();
-			if(v.name.equals(startPos)){
-				continue;
-			}
-	//		System.out.println(v.name+"the cost:"+v.cost);
-			Vertex vp = v.parent;
+			Vertex vp = v.backpointer;
 			while(vp!=null){
+				if(lastParent.equals(vp.name)) break;
 				routetemp.append(vp.name+";");
-				vp = vp.parent;
+				lastParent = vp.name;
+				vp = vp.backpointer;
 			}
-			temp.append("/"+"Destination = "+v.name+",Cost = "+v.cost+",Link= ("+routetemp.toString()+")");
-	//		System.out.println("Destination = "+v.name+",Cost = "+v.cost+",Link= ("+routetemp.toString()+")");
+			if(routetemp.toString()==null){
+				System.out.println("Line 158"+"/"+"Destination = "+v.name+",Cost = "+v.cost+",Link= ("+startPos+")");
+				temp.append("/"+"Destination = "+v.name+",Cost = "+v.cost+","+startPos);
+			}else{
+				temp.append("/"+"Destination = "+v.name+",Cost = "+v.cost+","+routetemp.toString());
+			}
+			
 			
 		}
 		return temp;
@@ -167,7 +172,7 @@ public class bfclient {
 
 
 
-	private void RecvSendLoop(StringBuilder sb, int listenPort2, int timeout2,
+	private void RecvSendLoop(Graph graph, StringBuilder sb, int listenPort2, int timeout2,
 			String startPos) {
 	    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(  
                 System.in));  
@@ -179,14 +184,20 @@ public class bfclient {
 				//		System.out.println("The second Recv:"+startPos);
 						StringBuilder sbTemp = new StringBuilder();
 			//			System.out.println("Before Result");
-						sbTemp = tableUpdate(startPos);
+						sbTemp = tableUpdate(graph,startPos);
 				
 						String[] table = sbTemp.toString().split("/");
-//						System.out.println(sbTemp.toString());
-			//			String[] table = sb.toString().split("/");
 						System.out.println("<Current Time> Distance vector list is:");
 						for(int i=0;i<table.length;i++){
-							if(table[i].length()!=0) System.out.println(table[i]);
+							if(table[i].length()!=0){ 
+								String[] resTemp = table[i].trim().split(",");
+								String[] secTemp = resTemp[0].trim().split("=");
+							//	System.out.println(secTemp[1]);
+								if(!secTemp[1].trim().equals(startPos.trim())){
+									System.out.println(table[i]);
+								}
+								
+							}
 							
 						}
 					}else if(message.trim().equals("CLOSE")){
@@ -204,7 +215,8 @@ public class bfclient {
 	public static void main(String[] args) {
 		new bfclient(args);
 	//	String[] res={"4118","5"};
-//		String[] res={"4115", "3" ,"127.0.0.1","4116", "5.0" ,"127.0.0.1" ,"4118" ,"30.0"};
+	//	String[] res={"4116","20","160.39.134.211", "4118","5.0"};
+	//	String[] res={"4115", "3" ,"127.0.0.1","4116", "5.0" ,"127.0.0.1" ,"4118" ,"30.0"};
 	//	new bfclient(res);
 	}
 	

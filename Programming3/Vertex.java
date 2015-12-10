@@ -9,7 +9,7 @@ public class Vertex {
 	public String ip;
 	public int port;
 	
-	public Vertex parent=null;
+	public Vertex backpointer=null;
 
 	public Vertex(String name,double cost,String ip, int port){
 		this.name = name;
