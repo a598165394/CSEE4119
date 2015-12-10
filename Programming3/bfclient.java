@@ -181,12 +181,12 @@ public class bfclient {
 	    	try {
 				while((message=bufferedReader.readLine())!=null){
 					if(message.trim().equals("SHOWRT")){
-				//		System.out.println("The second Recv:"+startPos);
 						StringBuilder sbTemp = new StringBuilder();
-			//			System.out.println("Before Result");
-						sbTemp = tableUpdate(graph,startPos);
-				
+		//				sbTemp = tableUpdate(graph,startPos);
+						sbTemp = TableUpdateForPrint(graph,startPos);
 						String[] table = sbTemp.toString().split("/");
+				
+			//			System.out.println(back.toString());
 						System.out.println("<Current Time> Distance vector list is:");
 						for(int i=0;i<table.length;i++){
 							if(table[i].length()!=0){ 
@@ -212,6 +212,45 @@ public class bfclient {
 		
 	}
 
+	
+	private StringBuilder TableUpdateForPrint(Graph graph, String startPos) {
+
+			StringBuilder temp =new StringBuilder();
+			String lastParent = "";
+			for(Vertex v:graph.vertices.values()){
+				
+				StringBuilder routetemp=new StringBuilder();
+				Vertex vp = v.backpointer;
+				while(vp!=null){
+					if(lastParent.equals(vp.name)) break;
+					routetemp.append(vp.name+";");
+					lastParent = vp.name;
+					vp = vp.backpointer;
+				}
+				if(routetemp.toString().trim().equals("")){
+		//			System.out.println("Line 231");
+					temp.append("/"+"Destination = "+v.name+",Cost = "+v.cost+", Link= ("+v.name+")");
+				}else{
+					if(routetemp.toString().contains(startPos)){
+						String[] tempString = routetemp.toString().split(";");
+						temp.append("/"+"Destination = "+v.name+",Cost = "+v.cost+", Link= (");
+						for(int i=0;i<tempString.length;i++){
+							if(!tempString[i].equals(startPos)){
+								temp.append(tempString[i]+" -> ");
+							}
+						}
+						temp.append(v.name+")");
+					}else{
+						temp.append("/"+"Destination = "+v.name+",Cost = "+v.cost+","+routetemp.toString());
+					}
+					
+				}
+				
+				
+			}
+		
+		return temp;
+	}
 	public static void main(String[] args) {
 		new bfclient(args);
 	//	String[] res={"4118","5"};

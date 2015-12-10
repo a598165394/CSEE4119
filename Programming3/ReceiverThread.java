@@ -12,7 +12,6 @@ import java.util.TimerTask;
 public class ReceiverThread implements Runnable {
 	private int timeout;
 	private int listenPort;
-	//private StringBuilder sb;
 	private String startPos;
 	DatagramPacket dp = null;
 	DatagramSocket ds = null;
