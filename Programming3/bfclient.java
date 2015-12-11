@@ -18,14 +18,20 @@ import java.util.concurrent.Executors;
 public class bfclient {
 	static Graph graph;
 	private static ExecutorService executorService = Executors.newCachedThreadPool();
+	static String breakInStart="";
+	static String breakInRecv="";
 	private int listenPort;
 	private int timeout;
-//	private PriorityQueue<Client> q = new PriorityQueue<Client>();
 	private StringBuilder sb;
-//	private DatagramPacket dp;
-//	private DatagramSocket ds;
+	public double lastValue;
+	public StringBuilder lastSb;
+	
+	private String neighborClose;
+	private Map<String,Double> neighbor;
+	private String keywordLink ="N";
 	@SuppressWarnings("unchecked")
 	public bfclient(String[] keyword) {
+		neighbor = new HashMap<String, Double>();
 		sb = new StringBuilder();
 		graph = new Graph();
 	
@@ -54,14 +60,14 @@ public class bfclient {
 			graph.addEdge(startPos, name, Double.parseDouble(keyword[i+2]));
 		}
 	
-		doBford(startPos);
+		doBford(startPos,keywordLink);
 //		System.out.println("The first:"+startPos);
 		sb = tableUpdate(graph,startPos);
 		executorService.execute(new ReceiverThread(listenPort,timeout,startPos,graph));
 		
 		RecvSendLoop(graph,sb,listenPort,timeout,startPos);
 	}
-	private void doBford(String startPos) {
+	private void doBford(String startPos, String keywordLink) {
 		Vertex start = 	bfclient.graph.vertices.get(startPos);
 		for(Vertex v:bfclient.graph.vertices.values()){
 	//		v.cost = Integer.MAX_VALUE;
@@ -78,6 +84,7 @@ public class bfclient {
 						Vertex source = edge.startVertex;
 						Vertex target = edge.endVertex;
 						if(target.cost> source.cost+edge.cost){
+							if((source.name.equals(startPos) && target.name.equals(neighborClose)) ||(source.name.equals(neighborClose) && target.name.equals(startPos))) continue;
 							target.cost = source.cost+edge.cost;
 							target.backpointer = source;
 						}
@@ -89,7 +96,7 @@ public class bfclient {
 						Vertex source = edge.startVertex;
 						Vertex target = edge.endVertex;
 						if(target.cost> source.cost+edge.cost){
-							System.out.println("There is negative weight cycle exists");
+				//			System.out.println("There is negative weight cycle exists");
 
 						}
 		//			}
@@ -97,17 +104,18 @@ public class bfclient {
 			}
 			
 		}
-		SendDataToNeigh(startPos);
+		SendDataToNeigh(startPos,keywordLink);
 	
 		
 	}
-	private void SendDataToNeigh(String startPos) {
+	private void SendDataToNeigh(String startPos, String keywordLink) {
 		Vertex self =bfclient.graph.vertices.get(startPos);
 		byte[] sendBuffer = new byte[4096];
 		String temp = "";
 		StringBuilder sb =new StringBuilder();
 		StringBuilder route=new StringBuilder();
-		sb.append("ROUTE UPDATE");
+		
+		sb.append("ROUTE UPDATE"+keywordLink);
 		for(Vertex v:bfclient.graph.vertices.values()){
 			Vertex vp = v.backpointer;
 			while(vp!=null){
@@ -121,9 +129,9 @@ public class bfclient {
 		}
 		sendBuffer = sb.toString().getBytes();
 		for(Edge w:self.getEdges()){
-			
+		
 			try {
-				System.out.println("Firstly Send to:"+w.endVertex);
+	//		System.out.println("Firstly Send to:"+w.endVertex);
 				DatagramSocket dsTemp = new DatagramSocket();	
 				
 				DatagramPacket dpTemp = new DatagramPacket(sendBuffer,sendBuffer.length,InetAddress.getByName(w.endVertex.ip),w.endVertex.port);
@@ -180,19 +188,25 @@ public class bfclient {
 	    for(;;){
 	    	try {
 				while((message=bufferedReader.readLine())!=null){
+					String linkdes = "";
+					if(message.length()>=10){
+						linkdes = message.trim().substring(0,8);
+					}
+					String linkRev = message.trim().substring(0,6);
 					if(message.trim().equals("SHOWRT")){
+						for(Edge w:graph.vertices.get(startPos).getEdges()){
+							System.out.println(startPos+"<->"+w.endVertex.name+":"+w.cost);
+						}
+						
 						StringBuilder sbTemp = new StringBuilder();
-		//				sbTemp = tableUpdate(graph,startPos);
 						sbTemp = TableUpdateForPrint(graph,startPos);
 						String[] table = sbTemp.toString().split("/");
-				
-			//			System.out.println(back.toString());
 						System.out.println("<Current Time> Distance vector list is:");
 						for(int i=0;i<table.length;i++){
 							if(table[i].length()!=0){ 
 								String[] resTemp = table[i].trim().split(",");
 								String[] secTemp = resTemp[0].trim().split("=");
-							//	System.out.println(secTemp[1]);
+
 								if(!secTemp[1].trim().equals(startPos.trim())){
 									System.out.println(table[i]);
 								}
@@ -200,8 +214,20 @@ public class bfclient {
 							}
 							
 						}
+						
+		//				System.out.println("The Backpointer for 192.168.0.8:4119 is: "+bfclient.graph.vertices.get("192.168.0.8:4119").backpointer.name);
 					}else if(message.trim().equals("CLOSE")){
 						
+					}else if(linkdes.equals("LINKDOWN")){
+						String neighName=message.trim().substring(8).trim();
+						String[] sep = neighName.split(" ");
+						neighborClose = sep[0]+":"+sep[1];
+						breakInStart=startPos;
+						breakInRecv=neighborClose;
+						SendLinkDown(startPos,lastSb,neighborClose);
+						
+					}else if(linkRev.equals("LINKUP")){
+						resumeNeigh(startPos);
 					}
 				}
 			} catch (IOException e) {
@@ -213,6 +239,27 @@ public class bfclient {
 	}
 
 	
+	private void resumeNeigh(String startPos) {
+		for(Edge w:graph.vertices.get(startPos).getEdges()){
+			
+		}
+		
+	}
+	private void SendLinkDown(String startPos, StringBuilder lastSb, String neighborClose) {
+//		String sendDown = "DESTROY LINK"+startPos;
+			neighbor.put(graph.vertices.get(neighborClose).name, graph.vertices.get(neighborClose).cost);
+			graph.vertices.get(neighborClose).cost = Double.MAX_VALUE;
+			String desInfo = "D"+startPos+";"+neighborClose+"!";
+			for(Edge w:graph.vertices.get(startPos).getEdges()){
+				if(w.endVertex.name.equals(neighborClose)){
+					w.cost=Double.MAX_VALUE;
+				}
+			}
+			doBford(startPos,desInfo);
+
+
+	
+	}
 	private StringBuilder TableUpdateForPrint(Graph graph, String startPos) {
 
 			StringBuilder temp =new StringBuilder();
@@ -222,13 +269,16 @@ public class bfclient {
 				StringBuilder routetemp=new StringBuilder();
 				Vertex vp = v.backpointer;
 				while(vp!=null){
-					if(lastParent.equals(vp.name)) break;
+//					if(v.name.equals("192.168.0.8:4119")&&startPos.equals("192.168.0.8:4117")){
+//						System.out.println("Line 225: BackPointer->"+vp.name);
+//					}
+					if(lastParent.equals(vp.name)||routetemp.toString().contains(vp.name)) break;
 					routetemp.append(vp.name+";");
+					
 					lastParent = vp.name;
 					vp = vp.backpointer;
 				}
 				if(routetemp.toString().trim().equals("")){
-		//			System.out.println("Line 231");
 					temp.append("/"+"Destination = "+v.name+",Cost = "+v.cost+", Link= ("+v.name+")");
 				}else{
 					if(routetemp.toString().contains(startPos)){
@@ -241,6 +291,7 @@ public class bfclient {
 						}
 						temp.append(v.name+")");
 					}else{
+						//Line 295 didn't work well for 5 node
 						temp.append("/"+"Destination = "+v.name+",Cost = "+v.cost+","+routetemp.toString());
 					}
 					
