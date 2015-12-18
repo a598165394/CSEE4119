@@ -20,6 +20,8 @@ public class bfclient {
 	private static ExecutorService executorService = Executors.newCachedThreadPool();
 	static String breakInStart="";
 	static String breakInRecv="";
+	static String recvInStart="";
+	static String recvInRecv="";
 	private int listenPort;
 	private int timeout;
 	private StringBuilder sb;
@@ -113,7 +115,9 @@ public class bfclient {
 		for(Vertex v:bfclient.graph.vertices.values()){
 			Vertex vp = v.backpointer;
 			while(vp!=null){
-				if(temp.equals(vp.name)) break;
+				if(temp.equals(vp.name)||route.toString().contains(vp.name)){
+					break;
+				}
 				route.append(vp.name+";");
 				temp = vp.name;
 				vp = vp.backpointer;
@@ -130,6 +134,14 @@ public class bfclient {
 					DatagramPacket dpTemp = new DatagramPacket(sendBuffer,sendBuffer.length,InetAddress.getByName(v.ip),v.port);
 					dsTemp.send(dpTemp);
 				}
+			}else if(keywordLink.equals("R"+startPos+";"+neighborClose+"!")){
+				for(Vertex v:graph.vertices.values()){
+					if(v.name.equals(startPos)) continue;
+					dsTemp = new DatagramSocket();
+					DatagramPacket dpTemp = new DatagramPacket(sendBuffer,sendBuffer.length,InetAddress.getByName(v.ip),v.port);
+					dsTemp.send(dpTemp);
+				}
+			
 			}else{
 				for(Edge w:self.getEdges()){
 						dsTemp = new DatagramSocket();	
@@ -204,21 +216,31 @@ public class bfclient {
 						
 						StringBuilder sbTemp = new StringBuilder();
 						sbTemp = TableUpdateForPrint(graph,startPos);
+			//			System.out.println("The cost from "+startPos+"->"+"160.39.134.48:4115 is: "+graph.vertices.get("160.39.134.48:4115").cost);
+
 						String[] table = sbTemp.toString().split("/");
 						System.out.println("<Current Time> Distance vector list is:");
-						for(int i=0;i<table.length;i++){
-							if(table[i].length()!=0){ 
-								String[] resTemp = table[i].trim().split(",");
-								String[] secTemp = resTemp[0].trim().split("=");
-
-								if(!secTemp[1].trim().equals(startPos.trim())){
-									System.out.println(table[i]);
-								}
-								
+						for(Vertex v:graph.vertices.values()){
+							if(v.name.equals(startPos)) continue;
+							if(v.backpointer==null){
+								System.out.println("Destination = "+v.name+",Cost = "+v.cost+", Link= ("+v.name+")");
+							}else{
+								System.out.println("Destination = "+v.name+",Cost = "+v.cost+", Link= ("+v.backpointer+")");
 							}
-							
-						}
 						
+						}
+//						for(int i=0;i<table.length;i++){
+//							if(table[i].length()!=0){ 
+//								String[] resTemp = table[i].trim().split(",");
+//								String[] secTemp = resTemp[0].trim().split("=");
+//
+//								if(!secTemp[1].trim().equals(startPos.trim())){
+//									System.out.println(table[i]);
+//								}
+//								
+//							}
+//							
+//						}
 		//				System.out.println("The Backpointer for 192.168.0.8:4119 is: "+bfclient.graph.vertices.get("192.168.0.8:4119").backpointer.name);
 					}else if(message.trim().equals("CLOSE")){
 						
@@ -231,6 +253,11 @@ public class bfclient {
 						SendLinkDown(startPos,lastSb,neighborClose);
 						
 					}else if(linkRev.equals("LINKUP")){
+						String neighName=message.trim().substring(6).trim();
+						String[] sep = neighName.split(" ");
+						neighborClose = sep[0];
+						recvInStart=startPos;
+						recvInRecv=neighborClose;
 						resumeNeigh(startPos);
 					}
 				}
@@ -243,9 +270,20 @@ public class bfclient {
 
 	
 	private void resumeNeigh(String startPos) {
+		graph.vertices.get(neighborClose).cost = neighbor.get(neighborClose);
+	//	System.out.println("The original cost is :"+String.valueOf(graph.vertices.get(neighborClose).cost = neighbor.get(neighborClose)));
+		String desInfo = "R"+startPos+";"+neighborClose+"!";
 		for(Edge w:graph.vertices.get(startPos).getEdges()){
-			
+			if(w.endVertex.name.equals(neighborClose)){
+				w.cost= neighbor.get(neighborClose);
+			}
 		}
+		for(Edge w:graph.vertices.get(neighborClose).getEdges()){
+			if(w.endVertex.name.equals(startPos)){
+				w.cost = neighbor.get(neighborClose);
+			}
+		}
+		doBford(startPos,desInfo);
 		
 	}
 	private void SendLinkDown(String startPos, StringBuilder lastSb, String neighborClose) {

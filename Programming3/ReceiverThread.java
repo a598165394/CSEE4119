@@ -84,9 +84,6 @@ public class ReceiverThread implements Runnable {
 						for(int i=0;i<newTable.length;i++){
 							String temp[] = newTable[i].trim().split(",");
 							if(temp[0].length()<=1) continue;
-//							if(temp[1].equals(startPos)){
-//								bfclient.graph.vertices.get(break1).cost = Double.parseDouble(temp[0]);
-//							}
 							if(Double.parseDouble(temp[1])==0.0){
 								sendName = temp[0];
 							}
@@ -128,9 +125,70 @@ public class ReceiverThread implements Runnable {
 							finishDoBF = new Timer();
 							finishDoBF.schedule(new SendTask (startPos), timeout*1000);
 							doBfordRe(startPos);
-					//		Renew(newTable,edgeCost,source);
 						}
 					
+					}else if(keyName.equals("R")){
+						
+						data = new byte[receiveBuffer.length-13];
+						System.arraycopy(receiveBuffer, 13, data, 0, receiveBuffer.length-13);
+						content = new String(data);
+						content = String.copyValueOf(content.toCharArray(), 0, data.length);
+						String[] sepContent = content.toString().trim().split("!");
+						double cost =0.0;
+						// Change cost
+						newTable = sepContent[1].trim().split("/");
+						for(int i=0;i<newTable.length;i++){
+							String temp[] = newTable[i].trim().split(",");
+							if(temp[0].length()<=1) continue;
+							if(Double.parseDouble(temp[1])==0.0){
+								sendName = temp[0];
+							}
+							if(temp[0].equals(startPos)){
+								cost = Double.parseDouble(temp[1]);
+							}
+							
+						}
+						// Get the Name
+						String[] breakLink = sepContent[0].trim().split(";");
+						break1= breakLink[0];
+						break2= breakLink[1];
+						for(Edge w:bfclient.graph.vertices.get(break2).getEdges()){
+							if(w.endVertex.name.equals(break1)){
+								w.cost = cost;
+							}
+						}
+						for(Edge w:bfclient.graph.vertices.get(break1).getEdges()){
+							if(w.endVertex.name.equals(break2)){
+								w.cost = cost;
+							}
+						}
+						System.out.println("Resume between is:"+break1+"<->"+break2+"Cost is:"+cost);
+						boolean connectOrNot =false;
+						for(Edge e:bfclient.graph.vertices.get(startPos).getEdges()){
+							if(e.endVertex.name.equals(sendName)){
+								for(int i=0;i<newTable.length;i++){
+									String temp[] = newTable[i].trim().split(",");
+									if(temp[0].length()<=1) continue;
+									if(temp[1].equals(startPos)){
+										bfclient.graph.vertices.get(break1).cost = cost;
+										break;
+									}
+								}
+								finishDoBF = new Timer();
+								finishDoBF.schedule(new SendTask (startPos), timeout*1000);
+								doBfordThird(startPos);
+								connectOrNot = true;
+								continue;
+							}
+						}
+						if(connectOrNot==false){
+							System.out.println("LINE 126");
+							bfclient.graph.vertices.get(break1).cost = cost;
+							finishDoBF = new Timer();
+							finishDoBF.schedule(new SendTask (startPos), timeout*1000);
+							doBfordThird(startPos);
+						}
+						doBfordThird(startPos);
 					}else{
 						data = new byte[receiveBuffer.length-12];
 						System.arraycopy(receiveBuffer, 12, data, 0, receiveBuffer.length-12);
@@ -187,6 +245,36 @@ public class ReceiverThread implements Runnable {
 		
 	}
 
+	private void doBfordThird(String startPos) {
+		Vertex start = 	bfclient.graph.vertices.get(startPos);
+		for(Vertex v:bfclient.graph.vertices.values()){
+			v.cost = Integer.MAX_VALUE;
+//			v.b =null;
+		}
+		start.cost =0.0;
+		// Relax
+		for(int i=1;i<=bfclient.graph.vertices.size()-1;i++){
+			for(Vertex vv:bfclient.graph.vertices.values()){
+				for(Edge edge:vv.getEdges()){		
+						Vertex source = edge.startVertex;
+						Vertex target = edge.endVertex;
+						if(target.cost> source.cost+edge.cost){
+							change = true;
+							target.cost = source.cost+edge.cost;				
+							target.backpointer = vv;
+						}
+				}
+			}
+			
+		}
+		if(change==true){
+			finishDoBF.cancel();
+			SendDataToNeigh(false);
+			change =false;
+		}
+			
+		
+	}
 	private void RecalculaBrek() {
 	//	bfclient.graph.vertices.get(break1).cost = 
 		// bfclient.graph.vertices.get(break2).cost = 
@@ -419,10 +507,8 @@ public class ReceiverThread implements Runnable {
 			}
 			if(route.toString()==null){
 				sb.append("/"+v.name+","+v.cost+","+startPos);
-			//	System.out.println("/"+v.name+","+v.cost+","+startPos);
 			}else{
 				sb.append("/"+v.name+","+v.cost+","+route.toString());
-		//		System.out.println("/"+v.name+","+v.cost+","+route.toString());
 			}
 		
 		}
