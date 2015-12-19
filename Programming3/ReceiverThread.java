@@ -4,8 +4,15 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 
 
@@ -23,20 +30,23 @@ public class ReceiverThread implements Runnable {
 	byte[] receiveBuffer;
 	private String break1="";
 	private String break2="";
+
 	
-	
-	public ReceiverThread(int listenPort, int timeout, String startPos, Graph graph) {
+	public  ReceiverThread(int listenPort, int timeout, String startPos, Graph graph) {
 		this.timeout = timeout;
 		this.listenPort = listenPort;
 		this.startPos = startPos;
+		bfclient.timeRecv = new ArrayList<Long>();
+		bfclient.nameNode = new ArrayList<String>();
+		bfclient.dieList = new ArrayList<String>();
 		
-
 	
 	}
 	@Override
 	public void run() {
 		
 		try {
+		
 			ds  = new DatagramSocket(listenPort);
 		} catch (SocketException e) {
 			e.printStackTrace();
@@ -44,7 +54,7 @@ public class ReceiverThread implements Runnable {
 	
 		while(true){
 			try {
-			
+	
 				receiveBuffer = new byte[4096];
 				dp = new DatagramPacket(receiveBuffer,receiveBuffer.length);
 				ds.receive(dp);	
@@ -61,6 +71,9 @@ public class ReceiverThread implements Runnable {
 				String title = new String(message);
 				title = String.copyValueOf(title.toCharArray(), 0, message.length);
 				if(title.toString().equals("ROUTE UPDATE")){
+					
+//					timeRecv.put(key, value);
+//					timeRecv.get("fd").
 					byte[] keyword = new byte[1];
 					double edgeCost=0;
 					String source="";
@@ -88,6 +101,21 @@ public class ReceiverThread implements Runnable {
 								sendName = temp[0];
 							}
 						}
+						if(!bfclient.nameNode.contains(sendName)){
+							
+							bfclient.nameNode.add(sendName);
+							 Calendar cald = Calendar.getInstance();
+							 bfclient.timeRecv.add(cald.getTimeInMillis());
+						}else{
+						//	if(nameNode.size()==0) continue;
+							for(int k=0;k<=bfclient.nameNode.size()-1;k++){
+								if(sendName.equals(bfclient.nameNode.get(k))){
+									 Calendar cald = Calendar.getInstance();
+									 bfclient.timeRecv.set(k, cald.getTimeInMillis());
+								}
+							}
+						}
+					
 						// Get the Name
 						String[] breakLink = sepContent[0].trim().split(";");
 						break1= breakLink[0];
@@ -97,12 +125,15 @@ public class ReceiverThread implements Runnable {
 								w.cost = Double.MAX_VALUE;
 							}
 						}
-						for(Edge w:bfclient.graph.vertices.get(break1).getEdges()){
-							if(w.endVertex.name.equals(break2)){
-								w.cost = Double.MAX_VALUE;
+						if(bfclient.graph.vertices.containsKey(break1)){
+							for(Edge w:bfclient.graph.vertices.get(break1).getEdges()){
+								if(w.endVertex.name.equals(break2)){
+									w.cost = Double.MAX_VALUE;
+								}
 							}
 						}
-						System.out.println("Break line is:"+break1+"<->"+break2);
+						
+		//				System.out.println("Break line is:"+break1+"<->"+break2);
 						boolean connectOrNot =false;
 						for(Edge e:bfclient.graph.vertices.get(startPos).getEdges()){
 							if(e.endVertex.name.equals(sendName)){
@@ -120,7 +151,7 @@ public class ReceiverThread implements Runnable {
 							}
 						}
 						if(connectOrNot==false){
-							System.out.println("LINE 126");
+			//				System.out.println("LINE 126");
 							bfclient.graph.vertices.get(break1).cost = 999.0;
 							finishDoBF = new Timer();
 							finishDoBF.schedule(new SendTask (startPos), timeout*1000);
@@ -148,6 +179,20 @@ public class ReceiverThread implements Runnable {
 							}
 							
 						}
+						if(!bfclient.nameNode.contains(sendName)){
+							
+							bfclient.nameNode.add(sendName);
+							 Calendar cald = Calendar.getInstance();
+							 bfclient.timeRecv.add(cald.getTimeInMillis());
+						}else{
+						//	if(nameNode.size()==0) continue;
+							for(int k=0;k<=bfclient.nameNode.size()-1;k++){
+								if(sendName.equals(bfclient.nameNode.get(k))){
+									 Calendar cald = Calendar.getInstance();
+									 bfclient.timeRecv.set(k, cald.getTimeInMillis());
+								}
+							}
+						}
 						// Get the Name
 						String[] breakLink = sepContent[0].trim().split(";");
 						break1= breakLink[0];
@@ -162,7 +207,7 @@ public class ReceiverThread implements Runnable {
 								w.cost = cost;
 							}
 						}
-						System.out.println("Resume between is:"+break1+"<->"+break2+"Cost is:"+cost);
+		//				System.out.println("Resume between is:"+break1+"<->"+break2+"Cost is:"+cost);
 						boolean connectOrNot =false;
 						for(Edge e:bfclient.graph.vertices.get(startPos).getEdges()){
 							if(e.endVertex.name.equals(sendName)){
@@ -182,7 +227,7 @@ public class ReceiverThread implements Runnable {
 							}
 						}
 						if(connectOrNot==false){
-							System.out.println("LINE 126");
+			//				System.out.println("LINE 126");
 							bfclient.graph.vertices.get(break1).cost = cost;
 							finishDoBF = new Timer();
 							finishDoBF.schedule(new SendTask (startPos), timeout*1000);
@@ -202,6 +247,7 @@ public class ReceiverThread implements Runnable {
 							if(Double.parseDouble(temp[1])==0.0){
 								sendName = temp[0];
 							}
+						
 							if(!temp[0].trim().equals("")&&!bfclient.graph.vertices.containsKey(temp[0])&&temp[0].length()>1){
 								source =temp[0];
 								for(int j=0;j<newTable.length;j++){
@@ -218,10 +264,24 @@ public class ReceiverThread implements Runnable {
 									
 									bfclient.graph.addEdge(startPos, source,newNodeCost);
 									bfclient.graph.vertices.get(source).backpointer = bfclient.graph.vertices.get(startPos);
-									System.out.println("New Node:"+source+"<->"+startPos+" Cost:"+newNodeCost);
+			//						System.out.println("New Node:"+source+"<->"+startPos+" Cost:"+newNodeCost);
 								}
 				 				
 							
+							}
+						}
+						if(!bfclient.nameNode.contains(sendName)){
+							
+							bfclient.nameNode.add(sendName);
+							 Calendar cald = Calendar.getInstance();
+							 bfclient.timeRecv.add(cald.getTimeInMillis());
+						}else{
+						//	if(nameNode.size()==0) continue;
+							for(int k=0;k<=bfclient.nameNode.size()-1;k++){
+								if(sendName.equals(bfclient.nameNode.get(k))){
+									 Calendar cald = Calendar.getInstance();
+									 bfclient.timeRecv.set(k, cald.getTimeInMillis());
+								}
 							}
 						}
 			//			System.out.println("Receive Data from<-"+sendName);
@@ -229,13 +289,6 @@ public class ReceiverThread implements Runnable {
 						finishDoBF.schedule(new SendTask (startPos), timeout*1000);
 						Renew(newTable,edgeCost,source);
 					}
-					
-				}else if(title.toString().equals("DESTROY LINK")){
-					byte[] data = new byte[receiveBuffer.length-12];
-					System.arraycopy(receiveBuffer, 12, data, 0, receiveBuffer.length-12);
-					String content = new String(data);
-					content = String.copyValueOf(content.toCharArray(), 0, data.length);	
-					bfclient.graph.vertices.get(content.trim()).cost=Double.MAX_VALUE;
 					
 				}
 				receiveBuffer=  new byte[4096];
@@ -306,7 +359,7 @@ public class ReceiverThread implements Runnable {
 						if(target.cost> source.cost+edge.cost){
 							double result = source.cost+edge.cost;
 								
-							System.out.println("Fom-Bend Alg+ From"+ target.name+"->"+source.name+"Is update from:"+target.cost+"->"+result);
+				//			System.out.println("Fom-Bend Alg+ From"+ target.name+"->"+source.name+"Is update from:"+target.cost+"->"+result);
 
 							change = true;
 							target.cost = source.cost+edge.cost;				
@@ -353,7 +406,7 @@ public class ReceiverThread implements Runnable {
 					bfclient.graph.addVertex(new Vertex(source, Double.MAX_VALUE, combine[0], Integer.parseInt(combine[1])));
 			//		System.out.println("line 99: New Add Node"+bfclient.graph.vertices.get(source).name+"Cost:"+bfclient.graph.vertices.get(source).cost);
 					if(bfclient.graph.vertices.get(source).backpointer.name.equals(startPos)) bfclient.graph.addEdge(startPos, source,edgeCost);
-					System.out.println("New Node:"+source+"<->"+startPos+" Cost:"+edgeCost);
+		//			System.out.println("New Node:"+source+"<->"+startPos+" Cost:"+edgeCost);
 				}
 
 			}
@@ -398,7 +451,7 @@ public class ReceiverThread implements Runnable {
 //					}
 					if(neverUp==false){
 						double result =  Double.parseDouble(nodeInfo[1])+fromCost;
-						System.out.println("Line 268: From"+ bfclient.graph.vertices.get(fromPos)+"->"+bfclient.graph.vertices.get(nodeInfo[0])+"Is update from:"+bfclient.graph.vertices.get(nodeInfo[0]).cost+"->"+result);
+	//					System.out.println("Line 268: From"+ bfclient.graph.vertices.get(fromPos)+"->"+bfclient.graph.vertices.get(nodeInfo[0])+"Is update from:"+bfclient.graph.vertices.get(nodeInfo[0]).cost+"->"+result);
 						bfclient.graph.vertices.get(nodeInfo[0]).cost = Double.parseDouble(nodeInfo[1])+fromCost;
 						if(nodeInfo.length>=3){
 							String[] routeTemp = nodeInfo[2].split(";");
@@ -448,14 +501,14 @@ public class ReceiverThread implements Runnable {
 						}
 						if(target.cost> source.cost+edge.cost){
 							double result = source.cost+edge.cost;
-							if(target.cost==15){
-								System.out.println("The recently cost for"+target+" is:"+target.cost);
-								System.out.println("The cost for "+source+"is:"+source.cost);
-								System.out.println("The cost for edge is :"+edge.cost);
-							}
-							
+//							if(target.cost==15){
+//								System.out.println("The recently cost for"+target+" is:"+target.cost);
+//								System.out.println("The cost for "+source+"is:"+source.cost);
+//								System.out.println("The cost for edge is :"+edge.cost);
+//							}
+//							
 						
-							System.out.println("Fom-Bend Alg+ From"+ target.name+"->"+source.name+"Is update from:"+target.cost+"->"+result);
+	//						System.out.println("Fom-Bend Alg+ From"+ target.name+"->"+source.name+"Is update from:"+target.cost+"->"+result);
 
 							change = true;
 							target.cost = source.cost+edge.cost;				
@@ -515,6 +568,7 @@ public class ReceiverThread implements Runnable {
 		sendBuffer = sb.toString().getBytes();
 		for(Edge w:self.getEdges()){
 			try {
+				if(bfclient.dieList.contains(w.endVertex.name)) continue;
 	//			System.out.println("line 214: Send to IP:"+w.endVertex.ip+"Send to Port:"+w.endVertex.port);
 				DatagramSocket dsTemp = new DatagramSocket();
 				DatagramPacket dpTemp = new DatagramPacket(sendBuffer,sendBuffer.length,InetAddress.getByName(w.endVertex.ip),w.endVertex.port);
@@ -563,7 +617,7 @@ public class ReceiverThread implements Runnable {
 				self = bfclient.graph.vertices.get(startPos);
 				for(Edge w:self.getEdges()){
 					try {
-						
+						if(bfclient.dieList.contains(w.endVertex.name)) continue;
 //						System.out.println("line 260:  sent to"+InetAddress.getByName(w.endVertex.ip)+"Port:"+w.endVertex.port);
 						DatagramSocket ds_Send = new DatagramSocket();
 						DatagramPacket dp_Send = new DatagramPacket(sendBuffer,sendBuffer.length,InetAddress.getByName(w.endVertex.ip),w.endVertex.port);

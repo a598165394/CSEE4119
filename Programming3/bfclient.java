@@ -9,6 +9,7 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.concurrent.ExecutorService;
@@ -27,6 +28,10 @@ public class bfclient {
 	private StringBuilder sb;
 	public double lastValue;
 	public StringBuilder lastSb;
+	static List<String> nameNode;
+	static List<Long> timeRecv;
+	static List<String> dieList;
+	
 	
 	private String neighborClose;
 	private Map<String,Double> neighbor;
@@ -36,9 +41,7 @@ public class bfclient {
 		neighbor = new HashMap<String, Double>();
 		sb = new StringBuilder();
 		graph = new Graph();
-	
 		listenPort = Integer.parseInt(keyword[0]);
-	
 		timeout = Integer.parseInt(keyword[1]);
 		if((keyword.length-2)%3!=0){
 			System.out.println("Input format Wrong. Please rerun");
@@ -66,7 +69,7 @@ public class bfclient {
 //		System.out.println("The first:"+startPos);
 		sb = tableUpdate(graph,startPos);
 		executorService.execute(new ReceiverThread(listenPort,timeout,startPos,graph));
-		
+		executorService.execute(new TimeCheck(timeout));
 		RecvSendLoop(graph,sb,listenPort,timeout,startPos);
 	}
 	private void doBford(String startPos, String keywordLink) {
@@ -180,7 +183,7 @@ public class bfclient {
 				vp = vp.backpointer;
 			}
 			if(routetemp.toString()==null){
-				System.out.println("Line 158"+"/"+"Destination = "+v.name+",Cost = "+v.cost+",Link= ("+startPos+")");
+	//			System.out.println("Line 158"+"/"+"Destination = "+v.name+",Cost = "+v.cost+",Link= ("+startPos+")");
 				temp.append("/"+"Destination = "+v.name+",Cost = "+v.cost+","+startPos);
 			}else{
 				temp.append("/"+"Destination = "+v.name+",Cost = "+v.cost+","+routetemp.toString());
@@ -205,13 +208,14 @@ public class bfclient {
 	    	try {
 				while((message=bufferedReader.readLine())!=null){
 					String linkdes = "";
+					String linkRev = "";
 					if(message.length()>=10){
 						linkdes = message.trim().substring(0,8);
 					}
-					String linkRev = message.trim().substring(0,6);
+					if(message.length()>6) linkRev = message.trim().substring(0,6);
 					if(message.trim().equals("SHOWRT")){
 						for(Edge w:graph.vertices.get(startPos).getEdges()){
-							System.out.println(startPos+"<->"+w.endVertex.name+":"+w.cost);
+					//		System.out.println(startPos+"<->"+w.endVertex.name+":"+w.cost);
 						}
 						
 						StringBuilder sbTemp = new StringBuilder();
@@ -219,9 +223,12 @@ public class bfclient {
 			//			System.out.println("The cost from "+startPos+"->"+"160.39.134.48:4115 is: "+graph.vertices.get("160.39.134.48:4115").cost);
 
 						String[] table = sbTemp.toString().split("/");
+			//			System.out.println("The current List size:"+nameNode.size());
 						System.out.println("<Current Time> Distance vector list is:");
 						for(Vertex v:graph.vertices.values()){
 							if(v.name.equals(startPos)) continue;
+						//	if(dieList.contains(v.name)) continue;
+							if(v.cost>=Double.MAX_VALUE || v.cost>=Integer.MAX_VALUE) continue;
 							if(v.backpointer==null){
 								System.out.println("Destination = "+v.name+",Cost = "+v.cost+", Link= ("+v.name+")");
 							}else{
@@ -229,13 +236,14 @@ public class bfclient {
 							}
 						
 						}
+					
 //						for(int i=0;i<table.length;i++){
 //							if(table[i].length()!=0){ 
 //								String[] resTemp = table[i].trim().split(",");
 //								String[] secTemp = resTemp[0].trim().split("=");
 //
 //								if(!secTemp[1].trim().equals(startPos.trim())){
-//									System.out.println(table[i]);
+// 									System.out.println(table[i]);
 //								}
 //								
 //							}
@@ -243,7 +251,13 @@ public class bfclient {
 //						}
 		//				System.out.println("The Backpointer for 192.168.0.8:4119 is: "+bfclient.graph.vertices.get("192.168.0.8:4119").backpointer.name);
 					}else if(message.trim().equals("CLOSE")){
-						
+						for(Edge edge:graph.vertices.get(startPos).getEdges()){
+							neighborClose= edge.endVertex.name;
+							breakInStart = startPos;
+							breakInRecv = neighborClose;
+							SendLinkDown(startPos, lastSb, neighborClose);
+						}
+						System.exit(0);
 					}else if(linkdes.equals("LINKDOWN")){
 						String neighName=message.trim().substring(8).trim();
 						String[] sep = neighName.split(" ");
@@ -386,7 +400,7 @@ public class bfclient {
 	}
 	public static void main(String[] args) {
 		new bfclient(args);
-	//	String[] res={"4118","5"};
+//		String[] res={"4118","5"};
 	//	String[] res={"4116","20","160.39.134.211", "4118","5.0"};
 	//	String[] res={"4115", "3" ,"127.0.0.1","4116", "5.0" ,"127.0.0.1" ,"4118" ,"30.0"};
 	//	new bfclient(res);
