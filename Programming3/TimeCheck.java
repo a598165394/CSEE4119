@@ -20,8 +20,27 @@ public class TimeCheck implements Runnable {
 				
 				 for(int i=0;i<=bfclient.timeRecv.size()-1;i++){
 					 Calendar cald = Calendar.getInstance();
-					 if(cald.getTimeInMillis()-bfclient.timeRecv.get(i) > 5*timeout*1000){
-			//			 System.out.println("Close happend for: "+bfclient.nameNode.get(i));
+ 					 long time = cald.get(Calendar.HOUR_OF_DAY)*3600+cald.get(Calendar.MINUTE)*60+cald.get(Calendar.SECOND);
+ 					 long boundaryCond = 0;
+ 					 if(timeout >=600){
+ 						boundaryCond = timeout*4;
+ 					 }else if(timeout>=300){
+ 						boundaryCond = timeout*5;
+ 					 }else if(timeout>=150){
+ 						boundaryCond = timeout*6;
+ 					 }else if(timeout>=60){
+ 						boundaryCond = timeout*8;
+ 					 }else if(timeout>=30){
+ 						boundaryCond = timeout*10;
+ 					 }else if(timeout>=15){
+ 						boundaryCond = timeout*12;
+ 					 }else if(timeout>=5){
+ 						boundaryCond = timeout*13;
+ 					 }else if(timeout>=1){
+ 						boundaryCond = timeout*15;
+ 					 }
+					 if(time-bfclient.timeRecv.get(i) > boundaryCond){
+						 System.out.println("Close happend for: "+bfclient.nameNode.get(i));
 						 bfclient.graph.vertices.get(bfclient.nameNode.get(i)).cost = Double.MAX_VALUE;
 						 bfclient.dieList.add(bfclient.nameNode.get(i));
 						 bfclient.timeRecv.remove(i);

@@ -105,13 +105,15 @@ public class ReceiverThread implements Runnable {
 							
 							bfclient.nameNode.add(sendName);
 							 Calendar cald = Calendar.getInstance();
-							 bfclient.timeRecv.add(cald.getTimeInMillis());
+							 long time = cald.get(Calendar.HOUR_OF_DAY)*3600+cald.get(Calendar.MINUTE)*60+cald.get(Calendar.SECOND);
+							 bfclient.timeRecv.add(time);
 						}else{
 						//	if(nameNode.size()==0) continue;
 							for(int k=0;k<=bfclient.nameNode.size()-1;k++){
 								if(sendName.equals(bfclient.nameNode.get(k))){
 									 Calendar cald = Calendar.getInstance();
-									 bfclient.timeRecv.set(k, cald.getTimeInMillis());
+									 long time = cald.get(Calendar.HOUR_OF_DAY)*3600+cald.get(Calendar.MINUTE)*60+cald.get(Calendar.SECOND);
+									 bfclient.timeRecv.set(k, time);
 								}
 							}
 						}
@@ -183,13 +185,15 @@ public class ReceiverThread implements Runnable {
 							
 							bfclient.nameNode.add(sendName);
 							 Calendar cald = Calendar.getInstance();
-							 bfclient.timeRecv.add(cald.getTimeInMillis());
+							 long time = cald.get(Calendar.HOUR_OF_DAY)*3600+cald.get(Calendar.MINUTE)*60+cald.get(Calendar.SECOND);
+							 bfclient.timeRecv.add(time);
 						}else{
 						//	if(nameNode.size()==0) continue;
 							for(int k=0;k<=bfclient.nameNode.size()-1;k++){
 								if(sendName.equals(bfclient.nameNode.get(k))){
 									 Calendar cald = Calendar.getInstance();
-									 bfclient.timeRecv.set(k, cald.getTimeInMillis());
+									 long time = cald.get(Calendar.HOUR_OF_DAY)*3600+cald.get(Calendar.MINUTE)*60+cald.get(Calendar.SECOND);
+									 bfclient.timeRecv.set(k, time);
 								}
 							}
 						}
@@ -274,13 +278,15 @@ public class ReceiverThread implements Runnable {
 							
 							bfclient.nameNode.add(sendName);
 							 Calendar cald = Calendar.getInstance();
-							 bfclient.timeRecv.add(cald.getTimeInMillis());
+							 long time = cald.get(Calendar.HOUR_OF_DAY)*3600+cald.get(Calendar.MINUTE)*60+cald.get(Calendar.SECOND);
+							 bfclient.timeRecv.add(time);
 						}else{
 						//	if(nameNode.size()==0) continue;
 							for(int k=0;k<=bfclient.nameNode.size()-1;k++){
 								if(sendName.equals(bfclient.nameNode.get(k))){
 									 Calendar cald = Calendar.getInstance();
-									 bfclient.timeRecv.set(k, cald.getTimeInMillis());
+									 long time = cald.get(Calendar.HOUR_OF_DAY)*3600+cald.get(Calendar.MINUTE)*60+cald.get(Calendar.SECOND);
+									 bfclient.timeRecv.set(k, time);
 								}
 							}
 						}
