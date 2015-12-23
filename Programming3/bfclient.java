@@ -29,12 +29,12 @@ public class bfclient {
 	public double lastValue;
 	public StringBuilder lastSb;
 	static List<String> nameNode;
-	static List<Long> timeRecv;
+	static List<Double> timeRecv;
 	static List<String> dieList;
-	
+	static int count = 0;
 	
 	private String neighborClose;
-	private Map<String,Double> neighbor;
+	public static Map<String,Double> neighbor;
 	private String keywordLink ="N";
 	@SuppressWarnings("unchecked")
 	public bfclient(String[] keyword) {
@@ -51,7 +51,7 @@ public class bfclient {
 		sb.append("ROUTE UPDATE");
 		try {
 			startPos = InetAddress.getLocalHost().getHostAddress()+":"+keyword[0];
-			graph.addVertex(new Vertex(startPos, Integer.MAX_VALUE, InetAddress.getLocalHost().getHostAddress(), listenPort));
+			graph.addVertex(new Vertex(startPos, Double.MAX_VALUE, InetAddress.getLocalHost().getHostAddress(), listenPort));
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		}	
@@ -206,6 +206,7 @@ public class bfclient {
 	    String message;
 	    for(;;){
 	    	try {
+	 
 				while((message=bufferedReader.readLine())!=null){
 					String linkdes = "";
 					String linkRev = "";
@@ -215,41 +216,30 @@ public class bfclient {
 					if(message.length()>6) linkRev = message.trim().substring(0,6);
 					if(message.trim().equals("SHOWRT")){
 						for(Edge w:graph.vertices.get(startPos).getEdges()){
-					//		System.out.println(startPos+"<->"+w.endVertex.name+":"+w.cost);
+							System.out.println(startPos+"<->"+w.endVertex.name+":"+w.cost);
 						}
 						
 						StringBuilder sbTemp = new StringBuilder();
 						sbTemp = TableUpdateForPrint(graph,startPos);
-			//			System.out.println("The cost from "+startPos+"->"+"160.39.134.48:4115 is: "+graph.vertices.get("160.39.134.48:4115").cost);
 
 						String[] table = sbTemp.toString().split("/");
-			//			System.out.println("The current List size:"+nameNode.size());
 						System.out.println("<Current Time> Distance vector list is:");
 						for(Vertex v:graph.vertices.values()){
 							if(v.name.equals(startPos)) continue;
 						//	if(dieList.contains(v.name)) continue;
-							if(v.cost>=Double.MAX_VALUE || v.cost>=Integer.MAX_VALUE) continue;
+	//						if(v.cost>=Double.MAX_VALUE || v.cost>=Integer.MAX_VALUE) continue;
 							if(v.backpointer==null){
 								System.out.println("Destination = "+v.name+",Cost = "+v.cost+", Link= ("+v.name+")");
+							}else if(!v.backpointer.name.equals(startPos)){
+							
+								
+								System.out.println("Destination = "+v.name+",Cost = "+v.cost+", Link= ("+v.backpointer.name+")");
 							}else{
-								System.out.println("Destination = "+v.name+",Cost = "+v.cost+", Link= ("+v.backpointer+")");
+								System.out.println("Destination = "+v.name+",Cost = "+v.cost+", Link= ("+v.name+")");
 							}
 						
 						}
 					
-//						for(int i=0;i<table.length;i++){
-//							if(table[i].length()!=0){ 
-//								String[] resTemp = table[i].trim().split(",");
-//								String[] secTemp = resTemp[0].trim().split("=");
-//
-//								if(!secTemp[1].trim().equals(startPos.trim())){
-// 									System.out.println(table[i]);
-//								}
-//								
-//							}
-//							
-//						}
-		//				System.out.println("The Backpointer for 192.168.0.8:4119 is: "+bfclient.graph.vertices.get("192.168.0.8:4119").backpointer.name);
 					}else if(message.trim().equals("CLOSE")){
 						for(Edge edge:graph.vertices.get(startPos).getEdges()){
 							neighborClose= edge.endVertex.name;
@@ -259,12 +249,13 @@ public class bfclient {
 						}
 						System.exit(0);
 					}else if(linkdes.equals("LINKDOWN")){
+						count+=1;
 						for(Edge w:graph.vertices.get(startPos).getEdges()){
 							if(neighbor.containsKey(w.endVertex.name)==false){
-									neighbor.put(w.endVertex.name, w.cost);
+								System.out.println("Add new node: "+w.endVertex.name);
+								neighbor.put(w.endVertex.name, w.cost);
 							}
 						}
-						graph.backupVertices = graph.vertices;
 						String neighName=message.trim().substring(8).trim();
 						String[] sep = neighName.split(" ");
 						neighborClose = sep[0]+":"+sep[1];
@@ -290,8 +281,11 @@ public class bfclient {
 
 	
 	private void resumeNeigh(String startPos) {
-	
-		graph.vertices.get(neighborClose).cost = neighbor.get(neighborClose);
+		try{
+			graph.vertices.get(neighborClose).cost = neighbor.get(neighborClose);
+		}catch (NullPointerException e){
+			System.out.println("Using command LINKUP Wrong; Right format: 192.168.0.11:4115 ");
+		}
 		//	System.out.println("The original cost is :"+String.valueOf(graph.vertices.get(neighborClose).cost = neighbor.get(neighborClose)));
 		String desInfo = "R"+startPos+";"+neighborClose+"!";
 		for(Edge w:graph.vertices.get(startPos).getEdges()){
@@ -310,21 +304,60 @@ public class bfclient {
 	private void SendLinkDown(String startPos, StringBuilder lastSb, String neighborClose) {
 	//		neighbor.put(graph.vertices.get(neighborClose).name, graph.vertices.get(neighborClose).cost);
 		
-			graph.vertices.get(neighborClose).cost = Double.MAX_VALUE;
+	//		graph.vertices.get(neighborClose).cost = Double.MAX_VALUE;
 			String desInfo = "D"+startPos+";"+neighborClose+"!";
 			for(Edge w:graph.vertices.get(startPos).getEdges()){
 				if(w.endVertex.name.equals(neighborClose)){
 					w.cost=Double.MAX_VALUE;
+					break;
 				}
 			}
-			doBfordRe(startPos,desInfo);
+			for(Edge w:graph.vertices.get(neighborClose).getEdges()){
+				if(w.endVertex.name.equals(startPos)){
+					w.cost=Double.MAX_VALUE;
+					break;
+				}
+			}
+			if(count<=1){
+				doBfordRe(startPos,desInfo);
+			}else{
+				doBfordReTemp(startPos,desInfo);
+			}
+			
 
 	
+	}
+	private void doBfordReTemp(String startPos, String desInfo) {
+		Vertex start = 	bfclient.graph.vertices.get(startPos);
+		for(Vertex v:bfclient.graph.vertices.values()){
+			v.cost = Double.MAX_VALUE;
+			v.backpointer =null;
+		}
+		start.cost =0;
+		// Relax
+		for(int i=1;i<=bfclient.graph.vertices.size()-1;i++){
+			for(Vertex vv:bfclient.graph.vertices.values()){
+				for(Edge edge:vv.getEdges()){
+						Vertex source = edge.startVertex;
+						Vertex target = edge.endVertex;
+						if(target.cost> source.cost+edge.cost){
+							System.out.println("Prepare Update!!!!!! for "+target.name+"<->"+source.name);
+				//			if((source.name.equals(startPos) && target.name.equals(neighborClose)) ||(source.name.equals(neighborClose) && target.name.equals(startPos))) continue;
+							target.cost = source.cost+edge.cost;
+							target.backpointer = source;
+						}
+				}
+			}
+			
+		}
+		SendDataToNeigh(startPos,desInfo);
+			
 	}
 	private void doBfordRe(String startPos, String desInfo) {
 			Vertex start = 	bfclient.graph.vertices.get(startPos);
 			for(Vertex v:bfclient.graph.vertices.values()){
-				v.cost = Integer.MAX_VALUE;
+				v.cost = Double.MAX_VALUE;
+		//		v.backpointer =null;
 			}
 			start.cost =0;
 			// Relax
@@ -334,17 +367,10 @@ public class bfclient {
 							Vertex source = edge.startVertex;
 							Vertex target = edge.endVertex;
 							if(target.cost> source.cost+edge.cost){
+								System.out.println("Prepare Update!!!!!! for "+target.name+"<->"+source.name);
 								if((source.name.equals(startPos) && target.name.equals(neighborClose)) ||(source.name.equals(neighborClose) && target.name.equals(startPos))) continue;
 								target.cost = source.cost+edge.cost;
 								target.backpointer = source;
-							}
-					}
-				}
-				for(Vertex vv:bfclient.graph.vertices.values()){
-					for(Edge edge:vv.getEdges()){
-							Vertex source = edge.startVertex;
-							Vertex target = edge.endVertex;
-							if(target.cost> source.cost+edge.cost){
 							}
 					}
 				}

@@ -6,10 +6,10 @@
 	Type make, it will build the executable file. The way to using is showed below. The 160.39.134.48 is the local ip address. I test with 5 nodes.
 	Example:
 	java bfclient 4118 3
-	java bfclient 4116 3 128.59.15.56 4118 5.0
-	java bfclient 4115 3 128.59.15.56 4118 30.0 128.59.15.56 4116 5.0
-	java bfclient 4117 3 128.59.15.56 4116 10
-	java bfclient 4119 3 128.59.15.56 4118 3 128.59.15.56 4115 1.0
+	java bfclient 4116 3 160.39.134.48 4118 5.0
+	java bfclient 4115 3 160.39.134.48 4118 30.0 160.39.134.48 4116 5.0
+	java bfclient 4117 3 160.39.134.48 4116 10
+	java bfclient 4119 3 160.39.134.48 4118 3 160.39.134.48 4115 1.0
 	
 	In terminal for java bfclient 4115, type LINKDOWN 160.39.134.48 4118 to close the link between the 4118 and 4116. 
 	In terminal for java bfclient 4115, type LINKUP 160.39.134.48:4118 to resume the last link between 4118 and 4116

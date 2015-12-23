@@ -14,33 +14,25 @@ public class TimeCheck implements Runnable {
 	@Override
 	public  void run() {
 		while(true){
-			
+			Calendar cald = Calendar.getInstance();
+			 long time = cald.get(Calendar.HOUR_OF_DAY)*3600+cald.get(Calendar.MINUTE)*60+cald.get(Calendar.SECOND);
 			if(bfclient.nameNode.size()!=0){
 		//		System.out.println("Loops");
 				
 				 for(int i=0;i<=bfclient.timeRecv.size()-1;i++){
-					 Calendar cald = Calendar.getInstance();
- 					 long time = cald.get(Calendar.HOUR_OF_DAY)*3600+cald.get(Calendar.MINUTE)*60+cald.get(Calendar.SECOND);
- 					 long boundaryCond = 0;
+						
+ 			
+ 					 double boundaryCond = 0;
  					 if(timeout >=600){
  						boundaryCond = timeout*4;
- 					 }else if(timeout>=300){
- 						boundaryCond = timeout*5;
- 					 }else if(timeout>=150){
- 						boundaryCond = timeout*6;
- 					 }else if(timeout>=60){
- 						boundaryCond = timeout*8;
- 					 }else if(timeout>=30){
- 						boundaryCond = timeout*10;
- 					 }else if(timeout>=15){
- 						boundaryCond = timeout*12;
- 					 }else if(timeout>=5){
- 						boundaryCond = timeout*13;
- 					 }else if(timeout>=1){
+ 					 }else if(timeout<=10){
  						boundaryCond = timeout*15;
+ 					 }else{
+ 						boundaryCond = timeout*10;
  					 }
-					 if(time-bfclient.timeRecv.get(i) > boundaryCond){
-						 System.out.println("Close happend for: "+bfclient.nameNode.get(i));
+					 if(time-bfclient.timeRecv.get(i) > boundaryCond+80){
+						 
+						 System.out.println("Current time out:"+timeout+"; Close happend for: "+bfclient.nameNode.get(i)+"last Time:"+time+";Rec Time:"+bfclient.timeRecv.get(i));
 						 bfclient.graph.vertices.get(bfclient.nameNode.get(i)).cost = Double.MAX_VALUE;
 						 bfclient.dieList.add(bfclient.nameNode.get(i));
 						 bfclient.timeRecv.remove(i);
@@ -53,7 +45,7 @@ public class TimeCheck implements Runnable {
 	//			System.out.println(bfclient.nameNode.size());
 			}
 			try {
-				Thread.sleep(500);
+				Thread.sleep(100);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

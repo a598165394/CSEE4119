@@ -36,7 +36,7 @@ public class ReceiverThread implements Runnable {
 		this.timeout = timeout;
 		this.listenPort = listenPort;
 		this.startPos = startPos;
-		bfclient.timeRecv = new ArrayList<Long>();
+		bfclient.timeRecv = new ArrayList<Double>();
 		bfclient.nameNode = new ArrayList<String>();
 		bfclient.dieList = new ArrayList<String>();
 		
@@ -70,7 +70,7 @@ public class ReceiverThread implements Runnable {
 				System.arraycopy(receiveBuffer, 0, message, 0, 12);
 				String title = new String(message);
 				title = String.copyValueOf(title.toCharArray(), 0, message.length);
-				if(title.toString().equals("ROUTE UPDATE")){
+				if(title.toString().trim().equals("ROUTE UPDATE")){
 					
 //					timeRecv.put(key, value);
 //					timeRecv.get("fd").
@@ -84,10 +84,45 @@ public class ReceiverThread implements Runnable {
 					String content;
 					String sendName="";
 					String[] newTable=null;
+					
+					data = new byte[receiveBuffer.length-12];
+					System.arraycopy(receiveBuffer, 12, data, 0, receiveBuffer.length-12);
+					content = new String(data);
+					content = String.copyValueOf(content.toCharArray(), 0, data.length);
+					newTable = content.toString().trim().split("/");
+					for(int i=0;i<newTable.length;i++){
+						String temp[] = newTable[i].trim().split(",");
+						if(temp[0].length()<=1||temp.length<=1) continue;
+						if(Double.parseDouble(temp[1])==0.0){
+							sendName = temp[0];
+						}
+					}
+					if(!bfclient.nameNode.contains(sendName)){
+						
+						bfclient.nameNode.add(sendName);
+						 Calendar cald = Calendar.getInstance();
+						 double time = cald.get(Calendar.HOUR_OF_DAY)*3600+cald.get(Calendar.MINUTE)*60+cald.get(Calendar.SECOND)+20;
+						 bfclient.timeRecv.add(time);
+					}else{
+					//	if(nameNode.size()==0) continue;
+						for(int k=0;k<=bfclient.nameNode.size()-1;k++){
+							if(sendName.equals(bfclient.nameNode.get(k))){
+								 Calendar cald = Calendar.getInstance();
+								 double time = cald.get(Calendar.HOUR_OF_DAY)*3600+cald.get(Calendar.MINUTE)*60+cald.get(Calendar.SECOND)+20;
+
+								 bfclient.timeRecv.set(k, time);
+							}
+						}
+					}
+					
+					
 					if(keyName.equals("D")){
-						bfclient.graph.backupVertices = bfclient.graph.vertices;
+						bfclient.count+=1;
+						System.out.println("Receive Destroy signal");
+			//			bfclient.graph.backupVertices = bfclient.graph.vertices;
 						for(Edge w:bfclient.graph.vertices.get(startPos).getEdges()){
 							if(!bfclient.neighbor.containsKey(w.endVertex.name)){
+								System.out.println("Add Neigh:"+w.endVertex.name+"; Cost:"+w.cost);
 								bfclient.neighbor.put(w.endVertex.name, w.cost);
 							}
 						}
@@ -111,14 +146,14 @@ public class ReceiverThread implements Runnable {
 							
 							bfclient.nameNode.add(sendName);
 							 Calendar cald = Calendar.getInstance();
-							 long time = cald.get(Calendar.HOUR_OF_DAY)*3600+cald.get(Calendar.MINUTE)*60+cald.get(Calendar.SECOND);
+							 double time = cald.get(Calendar.HOUR_OF_DAY)*3600+cald.get(Calendar.MINUTE)*60+cald.get(Calendar.SECOND)+20;
 							 bfclient.timeRecv.add(time);
 						}else{
 						//	if(nameNode.size()==0) continue;
 							for(int k=0;k<=bfclient.nameNode.size()-1;k++){
 								if(sendName.equals(bfclient.nameNode.get(k))){
 									 Calendar cald = Calendar.getInstance();
-									 long time = cald.get(Calendar.HOUR_OF_DAY)*3600+cald.get(Calendar.MINUTE)*60+cald.get(Calendar.SECOND);
+									 double time = cald.get(Calendar.HOUR_OF_DAY)*3600+cald.get(Calendar.MINUTE)*60+cald.get(Calendar.SECOND)+20;
 									 bfclient.timeRecv.set(k, time);
 								}
 							}
@@ -191,14 +226,14 @@ public class ReceiverThread implements Runnable {
 							
 							bfclient.nameNode.add(sendName);
 							 Calendar cald = Calendar.getInstance();
-							 long time = cald.get(Calendar.HOUR_OF_DAY)*3600+cald.get(Calendar.MINUTE)*60+cald.get(Calendar.SECOND);
+							 double time = cald.get(Calendar.HOUR_OF_DAY)*3600+cald.get(Calendar.MINUTE)*60+cald.get(Calendar.SECOND)+20;
 							 bfclient.timeRecv.add(time);
 						}else{
 						//	if(nameNode.size()==0) continue;
 							for(int k=0;k<=bfclient.nameNode.size()-1;k++){
 								if(sendName.equals(bfclient.nameNode.get(k))){
 									 Calendar cald = Calendar.getInstance();
-									 long time = cald.get(Calendar.HOUR_OF_DAY)*3600+cald.get(Calendar.MINUTE)*60+cald.get(Calendar.SECOND);
+									 double time = cald.get(Calendar.HOUR_OF_DAY)*3600+cald.get(Calendar.MINUTE)*60+cald.get(Calendar.SECOND)+20;
 									 bfclient.timeRecv.set(k, time);
 								}
 							}
@@ -220,7 +255,7 @@ public class ReceiverThread implements Runnable {
 		//				System.out.println("Resume between is:"+break1+"<->"+break2+"Cost is:"+cost);
 						boolean connectOrNot =false;
 						for(Edge e:bfclient.graph.vertices.get(startPos).getEdges()){
-							if(e.endVertex.name.equals(sendName)){
+							if(e.endVertex.name.equals(sendName)&&e.cost>99999){
 								for(int i=0;i<newTable.length;i++){
 									String temp[] = newTable[i].trim().split(",");
 									if(temp[0].length()<=1) continue;
@@ -233,17 +268,18 @@ public class ReceiverThread implements Runnable {
 								finishDoBF.schedule(new SendTask (startPos), timeout*1000);
 								doBfordThird(startPos);
 								connectOrNot = true;
-								continue;
+								break;
+							//	continue;
 							}
 						}
 						if(connectOrNot==false){
 			//				System.out.println("LINE 126");
-							bfclient.graph.vertices.get(break1).cost = cost;
+					//		bfclient.graph.vertices.get(break1).cost = cost;
 							finishDoBF = new Timer();
 							finishDoBF.schedule(new SendTask (startPos), timeout*1000);
 							doBfordThird(startPos);
 						}
-						doBfordThird(startPos);
+					//	doBfordThird(startPos);
 					}else{
 						data = new byte[receiveBuffer.length-12];
 						System.arraycopy(receiveBuffer, 12, data, 0, receiveBuffer.length-12);
@@ -284,14 +320,14 @@ public class ReceiverThread implements Runnable {
 							
 							bfclient.nameNode.add(sendName);
 							 Calendar cald = Calendar.getInstance();
-							 long time = cald.get(Calendar.HOUR_OF_DAY)*3600+cald.get(Calendar.MINUTE)*60+cald.get(Calendar.SECOND);
+							 double time = cald.get(Calendar.HOUR_OF_DAY)*3600+cald.get(Calendar.MINUTE)*60+cald.get(Calendar.SECOND)+20;
 							 bfclient.timeRecv.add(time);
 						}else{
 						//	if(nameNode.size()==0) continue;
 							for(int k=0;k<=bfclient.nameNode.size()-1;k++){
 								if(sendName.equals(bfclient.nameNode.get(k))){
 									 Calendar cald = Calendar.getInstance();
-									 long time = cald.get(Calendar.HOUR_OF_DAY)*3600+cald.get(Calendar.MINUTE)*60+cald.get(Calendar.SECOND);
+									 double time = cald.get(Calendar.HOUR_OF_DAY)*3600+cald.get(Calendar.MINUTE)*60+cald.get(Calendar.SECOND)+20;
 									 bfclient.timeRecv.set(k, time);
 								}
 							}
@@ -313,7 +349,7 @@ public class ReceiverThread implements Runnable {
 	private void doBfordThird(String startPos) {
 		Vertex start = 	bfclient.graph.vertices.get(startPos);
 		for(Vertex v:bfclient.graph.vertices.values()){
-			v.cost = Integer.MAX_VALUE;
+			v.cost = Double.MAX_VALUE;
 //			v.b =null;
 		}
 		start.cost =0.0;
@@ -352,7 +388,7 @@ public class ReceiverThread implements Runnable {
 	private void doBfordRe(String startPos) {
 		Vertex start = 	bfclient.graph.vertices.get(startPos);
 		for(Vertex v:bfclient.graph.vertices.values()){
-			v.cost = Integer.MAX_VALUE;
+			v.cost = Double.MAX_VALUE;
 //			v.backpointer =null;
 		}
 		start.cost =0.0;
