@@ -259,6 +259,12 @@ public class bfclient {
 						}
 						System.exit(0);
 					}else if(linkdes.equals("LINKDOWN")){
+						for(Edge w:graph.vertices.get(startPos).getEdges()){
+							if(neighbor.containsKey(w.endVertex.name)==false){
+									neighbor.put(w.endVertex.name, w.cost);
+							}
+						}
+						graph.backupVertices = graph.vertices;
 						String neighName=message.trim().substring(8).trim();
 						String[] sep = neighName.split(" ");
 						neighborClose = sep[0]+":"+sep[1];
@@ -284,8 +290,9 @@ public class bfclient {
 
 	
 	private void resumeNeigh(String startPos) {
+	
 		graph.vertices.get(neighborClose).cost = neighbor.get(neighborClose);
-	//	System.out.println("The original cost is :"+String.valueOf(graph.vertices.get(neighborClose).cost = neighbor.get(neighborClose)));
+		//	System.out.println("The original cost is :"+String.valueOf(graph.vertices.get(neighborClose).cost = neighbor.get(neighborClose)));
 		String desInfo = "R"+startPos+";"+neighborClose+"!";
 		for(Edge w:graph.vertices.get(startPos).getEdges()){
 			if(w.endVertex.name.equals(neighborClose)){
@@ -301,7 +308,8 @@ public class bfclient {
 		
 	}
 	private void SendLinkDown(String startPos, StringBuilder lastSb, String neighborClose) {
-			neighbor.put(graph.vertices.get(neighborClose).name, graph.vertices.get(neighborClose).cost);
+	//		neighbor.put(graph.vertices.get(neighborClose).name, graph.vertices.get(neighborClose).cost);
+		
 			graph.vertices.get(neighborClose).cost = Double.MAX_VALUE;
 			String desInfo = "D"+startPos+";"+neighborClose+"!";
 			for(Edge w:graph.vertices.get(startPos).getEdges()){
@@ -310,7 +318,6 @@ public class bfclient {
 				}
 			}
 			doBfordRe(startPos,desInfo);
-
 
 	
 	}

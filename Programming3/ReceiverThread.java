@@ -85,6 +85,12 @@ public class ReceiverThread implements Runnable {
 					String sendName="";
 					String[] newTable=null;
 					if(keyName.equals("D")){
+						bfclient.graph.backupVertices = bfclient.graph.vertices;
+						for(Edge w:bfclient.graph.vertices.get(startPos).getEdges()){
+							if(!bfclient.neighbor.containsKey(w.endVertex.name)){
+								bfclient.neighbor.put(w.endVertex.name, w.cost);
+							}
+						}
 						// Get concent
 						data = new byte[receiveBuffer.length-13];
 						System.arraycopy(receiveBuffer, 13, data, 0, receiveBuffer.length-13);
